@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     const { productIds } = await req.json();
 
     // Fetch products from database
-    const productsResult = await sql`SELECT id, name, description FROM products WHERE id = ANY($1)`, [productIds];
+    const productsResult = await sql`SELECT id, name, description FROM products WHERE id IN (${productIds.join(',')})`.then(r => r);
     const products = productsResult.rows;
 
     const improvements: any[] = [];
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       );
 
       // Update database
-      await sql`UPDATE products SET description = $1, updated_at = NOW() WHERE id = $2`, [result.analysis, product.id];
+      await sql`UPDATE products SET description = ${result.analysis}, updated_at = NOW() WHERE id = ${product.id}`;
 
       improvements.push({
         productId: product.id,

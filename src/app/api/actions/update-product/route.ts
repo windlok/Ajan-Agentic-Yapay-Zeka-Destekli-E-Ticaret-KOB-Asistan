@@ -24,16 +24,16 @@ export async function PUT(req: NextRequest) {
     const result = await sql`
       UPDATE products 
       SET 
-        name = $1,
-        description = $2,
-        base_price = $3,
-        cost_price = $4,
-        current_price = $3,
-        inventory = $5,
+        name = ${name},
+        description = ${description},
+        base_price = ${basePrice},
+        cost_price = ${costPrice},
+        current_price = ${basePrice},
+        inventory = ${inventory},
         updated_at = NOW()
-      WHERE id = $6
+      WHERE id = ${productId}
       RETURNING *
-    `, [name, description, basePrice, costPrice, inventory, productId];
+    `;
 
     if (result.rows.length === 0) {
       return NextResponse.json(

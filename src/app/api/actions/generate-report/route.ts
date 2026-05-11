@@ -15,14 +15,14 @@ export async function POST(req: NextRequest) {
       COUNT(*) as total_products,
       SUM(CAST(current_price * inventory AS FLOAT)) as total_inventory_value,
       AVG(CAST((current_price - cost_price) * 100 / current_price AS FLOAT)) as avg_margin
-      FROM products WHERE seller_id = $1`, [sellerId];
+      FROM products WHERE seller_id = ${sellerId}`;
 
     const financialResult = await sql`SELECT 
       total_revenue, 
       total_profit, 
       profit_margin 
       FROM financial_metrics 
-      WHERE seller_id = $1 AND month = $2 AND year = $3`, [sellerId, month || new Date().getMonth() + 1, year || new Date().getFullYear()];
+      WHERE seller_id = ${sellerId} AND month = ${month || new Date().getMonth() + 1} AND year = ${year || new Date().getFullYear()}`;
 
     const products = productsResult.rows[0];
     const financial = financialResult.rows[0];
