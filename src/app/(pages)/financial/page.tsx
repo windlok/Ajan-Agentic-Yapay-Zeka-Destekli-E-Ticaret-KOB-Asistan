@@ -5,7 +5,16 @@
  * Detailed financial analytics and AI-driven insights
  */
 
+import { useState } from 'react';
+
 export default function FinancialPage() {
+  const [selectedAction, setSelectedAction] = useState<string | null>(null);
+
+  const handleAction = (action: string) => {
+    setSelectedAction(action);
+    alert(`✅ ${action} işlemi başlatıldı!\n\nBu özellik için Gemini AI'ye bağlantı gereklidir.`);
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -134,7 +143,7 @@ export default function FinancialPage() {
             <p className="text-sm text-gray-700 mb-3">
               Screen Protector fiyatını ₺45'ten ₺55'e yükselterek marjı %10'dan %22'ye çıkarabili rsiniz.
             </p>
-            <button className="text-sm font-semibold text-blue-600 hover:text-blue-700">Uygula →</button>
+            <button onClick={() => handleAction('Fiyatlandırma Önerisi')} className="text-sm font-semibold text-blue-600 hover:text-blue-700">Uygula →</button>
           </div>
 
           <div className="p-4 bg-white rounded-lg border border-blue-200">
@@ -142,7 +151,7 @@ export default function FinancialPage() {
             <p className="text-sm text-gray-700 mb-3">
               Phone Stand stoku bitme riski taşıyor. Talep tahminine göre 50 adet daha sipariş öneririz.
             </p>
-            <button className="text-sm font-semibold text-blue-600 hover:text-blue-700">Sipariş Ver →</button>
+            <button onClick={() => handleAction('Sipariş Ver')} className="text-sm font-semibold text-blue-600 hover:text-blue-700">Sipariş Ver →</button>
           </div>
 
           <div className="p-4 bg-white rounded-lg border border-blue-200">
@@ -150,7 +159,7 @@ export default function FinancialPage() {
             <p className="text-sm text-gray-700 mb-3">
               Wireless Headphones daha agresif pazarlamaya koyulursa satışlar %30 artabilir.
             </p>
-            <button className="text-sm font-semibold text-blue-600 hover:text-blue-700">Detaylar →</button>
+            <button onClick={() => handleAction('Kar Maksimizasyonu Detayları')} className="text-sm font-semibold text-blue-600 hover:text-blue-700">Detaylar →</button>
           </div>
 
           <div className="p-4 bg-white rounded-lg border border-blue-200">
@@ -158,7 +167,7 @@ export default function FinancialPage() {
             <p className="text-sm text-gray-700 mb-3">
               Son 7 günde USD volatilitesi yükseldi. Fiyatları ABD'den ithal ürünler için kontrol edin.
             </p>
-            <button className="text-sm font-semibold text-blue-600 hover:text-blue-700">Analiz →</button>
+            <button onClick={() => handleAction('Keskinlik Analizi')} className="text-sm font-semibold text-blue-600 hover:text-blue-700">Analiz →</button>
           </div>
         </div>
       </div>

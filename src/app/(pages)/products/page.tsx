@@ -9,6 +9,12 @@ import { useState } from 'react';
 
 export default function ProductsPage() {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<number | null>(null);
+
+  const handleEdit = (productId: number, productName: string) => {
+    setEditingProduct(productId);
+    alert(`✏️ ${productName} düzenleme formu açıldı!\n\nBu özellik için çift tıklayarak veya modal üzerinden düzenleyebilirsiniz.`);
+  };
 
   const mockProducts = [
     {
@@ -212,7 +218,9 @@ export default function ProductsPage() {
                   </td>
 
                   <td className="text-center py-4 px-4">
-                    <button className="text-blue-600 hover:text-blue-700 font-medium text-sm">
+                    <button 
+                      onClick={() => handleEdit(product.id, product.name)}
+                      className="text-blue-600 hover:text-blue-700 font-medium text-sm">
                       Düzenle
                     </button>
                   </td>
