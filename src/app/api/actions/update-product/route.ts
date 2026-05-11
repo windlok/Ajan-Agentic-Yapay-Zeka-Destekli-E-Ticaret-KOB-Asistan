@@ -3,11 +3,13 @@ import { sql } from '@vercel/postgres';
 
 /**
  * PUT /api/actions/update-product
- * Update product details
+ * Update product details in database
  */
 export async function PUT(req: NextRequest) {
   try {
     const { productId, name, description, basePrice, costPrice, inventory } = await req.json();
+
+    console.log('🔄 Update request received:', { productId, name, basePrice, costPrice, inventory });
 
     // Validate required fields
     if (!productId || !name) {
@@ -19,6 +21,8 @@ export async function PUT(req: NextRequest) {
 
     // Calculate new margin
     const newMargin = ((basePrice - costPrice) / basePrice * 100).toFixed(2);
+
+    console.log('📝 Attempting to update product:', productId);
 
     // Update in database
     const result = await sql`
@@ -35,12 +39,21 @@ export async function PUT(req: NextRequest) {
       RETURNING *
     `;
 
+    console.log('📊 Update result rows:', result.rows.length);
+
     if (result.rows.length === 0) {
+      console.warn('⚠️ Product not found:', productId);
       return NextResponse.json(
-        { error: 'Ürün bulunamadı' },
+        { 
+          error: `Ürün bulunamadı (ID: ${productId})`,
+          productId,
+          details: 'Veritabanında bu ID ile ürün yok. Mock verisi mi kullanıyorsunuz?'
+        },
         { status: 404 }
       );
     }
+
+    console.log('✅ Product updated successfully:', productId);
 
     return NextResponse.json({
       success: true,
@@ -50,8 +63,13 @@ export async function PUT(req: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
+    console.error('❌ Error updating product:', error);
     return NextResponse.json(
-      { error: 'Ürün güncelleme başarısız', details: String(error) },
+      { 
+        error: 'Ürün güncelleme başarısız', 
+        details: String(error),
+        message: error instanceof Error ? error.message : 'Bilinmeyen hata'
+      },
       { status: 500 }
     );
   }

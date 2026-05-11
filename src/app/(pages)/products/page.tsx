@@ -115,6 +115,28 @@ export default function ProductsPage() {
 
     setLoading(true);
     try {
+      // Check if this is a mock product (ID starts with 'test-')
+      if (String(editingProduct.id).startsWith('test-')) {
+        // Update local mock data
+        const updatedProducts = products.map(p => 
+          p.id === editingProduct.id 
+            ? {
+                ...p,
+                name: editFormData.name,
+                price: parseInt(editFormData.price),
+                costPrice: parseInt(editFormData.costPrice),
+                inventory: parseInt(editFormData.inventory),
+                margin: ((parseInt(editFormData.price) - parseInt(editFormData.costPrice)) / parseInt(editFormData.price) * 100).toFixed(1),
+              }
+            : p
+        );
+        setProducts(updatedProducts);
+        alert(`✅ ${editFormData.name} başarıyla güncellendi! (Demo Mod)\n\nYeni Fiyat: ₺${editFormData.price}`);
+        setEditingProduct(null);
+        return;
+      }
+
+      // For real database products, send update to API
       const response = await fetch('/api/actions/update-product', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -128,25 +150,28 @@ export default function ProductsPage() {
         }),
       });
       const data = await response.json();
-      
-      // Refresh products list
-      const refreshResponse = await fetch('/api/products');
-      const refreshResult = await refreshResponse.json();
-      if (refreshResult.success && refreshResult.data?.data) {
-        const mappedProducts = refreshResult.data.data.map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          price: p.current_price || p.base_price,
-          costPrice: p.cost_price,
-          competitors: p.competitor_prices?.price || p.base_price - 30,
-          margin: ((p.base_price - p.cost_price) / p.base_price * 100).toFixed(1),
-          inventory: p.inventory,
-          recommendation: 'AI önerisi',
-          confidence: 0.88,
-        }));
-        setProducts(mappedProducts);
+
+      // Check if update was successful
+      if (!response.ok || data.error) {
+        alert(`❌ Güncelleme başarısız!\n\n${data.error || data.details || 'Bilinmeyen hata'}`);
+        return;
       }
-      
+
+      // Update local state with response from database
+      const updatedProducts = products.map(p => 
+        p.id === editingProduct.id 
+          ? {
+              ...p,
+              name: data.product.name,
+              price: data.product.current_price || data.product.base_price,
+              costPrice: data.product.cost_price,
+              inventory: data.product.inventory,
+              margin: data.newMargin,
+            }
+          : p
+      );
+      setProducts(updatedProducts);
+
       alert(`✅ ${editFormData.name} başarıyla güncellendi!\n\nYeni Fiyat: ₺${editFormData.price}\nKar Marjı: ${data.newMargin}%`);
       setEditingProduct(null);
     } catch (error) {
