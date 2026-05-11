@@ -118,6 +118,7 @@ export default function ProductsPage() {
       // Check if this is a mock product (ID starts with 'test-')
       if (String(editingProduct.id).startsWith('test-')) {
         // Update local mock data
+        const newMargin = (((parseInt(editFormData.price) - parseInt(editFormData.costPrice)) / parseInt(editFormData.price) * 100));
         const updatedProducts = products.map(p => 
           p.id === editingProduct.id 
             ? {
@@ -126,7 +127,7 @@ export default function ProductsPage() {
                 price: parseInt(editFormData.price),
                 costPrice: parseInt(editFormData.costPrice),
                 inventory: parseInt(editFormData.inventory),
-                margin: ((parseInt(editFormData.price) - parseInt(editFormData.costPrice)) / parseInt(editFormData.price) * 100).toFixed(1),
+                margin: newMargin,
               }
             : p
         );
