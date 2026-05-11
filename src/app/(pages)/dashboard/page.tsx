@@ -142,9 +142,9 @@ export default function DashboardPage() {
 
           <div>
             <p className="text-sm text-gray-600 mb-2">Güncelleme Sıklığı</p>
-            <select className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+            <select defaultValue="Günlük" className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
               <option>Saatlik</option>
-              <option selected>Günlük</option>
+              <option>Günlük</option>
               <option>Haftalık</option>
             </select>
           </div>
