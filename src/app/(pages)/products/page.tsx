@@ -15,42 +15,6 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
 
-  // Fetch products from API
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch('/api/products');
-        const result = await response.json();
-        if (result.success && result.data?.data) {
-          // Map database fields to component fields
-          const mappedProducts = result.data.data.map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            price: p.current_price || p.base_price,
-            costPrice: p.cost_price,
-            competitors: p.competitor_prices?.price || p.base_price - 30,
-            margin: ((p.base_price - p.cost_price) / p.base_price * 100).toFixed(1),
-            inventory: p.inventory,
-            recommendation: 'AI önerisi',
-            confidence: 0.88,
-          }));
-          setProducts(mappedProducts);
-        } else {
-          // Fallback to mock data if API fails
-          setProducts(mockProducts);
-        }
-      } catch (error) {
-        console.error('Error fetching products:', error);
-        // Use mock data as fallback
-        setProducts(mockProducts);
-      } finally {
-        setProductsLoading(false);
-      }
-    };
-
-    fetchProducts();
-  }, []);
-
   // Mock products as fallback
   const mockProducts = [
     {
@@ -98,6 +62,43 @@ export default function ProductsPage() {
       confidence: 0.96,
     },
   ];
+
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/products');
+        const result = await response.json();
+        if (result.success && result.data?.data && result.data.data.length > 0) {
+          // Map database fields to component fields
+          const mappedProducts = result.data.data.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            price: p.current_price || p.base_price,
+            costPrice: p.cost_price,
+            competitors: p.competitor_prices?.price || p.base_price - 30,
+            margin: ((p.base_price - p.cost_price) / p.base_price * 100).toFixed(1),
+            inventory: p.inventory,
+            recommendation: 'AI önerisi',
+            confidence: 0.88,
+          }));
+          setProducts(mappedProducts);
+        } else {
+          // Fallback to mock data if API fails or returns empty
+          console.log('Using mock data as fallback');
+          setProducts(mockProducts);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        // Use mock data as fallback
+        setProducts(mockProducts);
+      } finally {
+        setProductsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const handleEditClick = (product: any) => {
     setEditingProduct(product);
