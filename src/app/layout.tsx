@@ -48,13 +48,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
               <div className="text-xs text-gray-500">
                 <p className="font-semibold mb-2">Ayarlar</p>
-                <a href="#" className="block hover:text-blue-600 py-1">
+                <a href="/preferences" className="block hover:text-blue-600 py-1">
                   Tercihler
                 </a>
-                <a href="#" className="block hover:text-blue-600 py-1">
+                <a href="/preferences#api" className="block hover:text-blue-600 py-1">
                   API Anahtarı
                 </a>
-                <a href="#" className="block hover:text-blue-600 py-1">
+                <a href="/" className="block hover:text-blue-600 py-1">
                   Çıkış
                 </a>
               </div>
