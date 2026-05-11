@@ -9,12 +9,22 @@ import { useState } from 'react';
 
 export default function ProductsPage() {
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<number | null>(null);
+  const [editingProduct, setEditingProduct] = useState<any | null>(null);
+  const [editFormData, setEditFormData] = useState<any>({});
   const [loading, setLoading] = useState(false);
 
-  const handleEdit = async (productId: number, productName: string) => {
-    const newPrice = prompt(`${productName} için yeni fiyat girin (₺):`, '');
-    if (!newPrice) return;
+  const handleEditClick = (product: any) => {
+    setEditingProduct(product);
+    setEditFormData({
+      name: product.name,
+      price: product.price,
+      costPrice: product.costPrice,
+      inventory: product.inventory,
+    });
+  };
+
+  const handleEditSave = async () => {
+    if (!editingProduct) return;
 
     setLoading(true);
     try {
@@ -22,16 +32,17 @@ export default function ProductsPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          productId,
-          name: productName,
-          description: `Updated ${productName}`,
-          basePrice: parseInt(newPrice),
-          costPrice: 100,
-          inventory: 50,
+          productId: editingProduct.id,
+          name: editFormData.name,
+          description: `Updated ${editFormData.name}`,
+          basePrice: parseInt(editFormData.price),
+          costPrice: parseInt(editFormData.costPrice),
+          inventory: parseInt(editFormData.inventory),
         }),
       });
       const data = await response.json();
-      alert(`✅ ${productName} başarıyla güncellendi!\n\nYeni Fiyat: ₺${newPrice}\nKar Marjı: ${data.newMargin}%`);
+      alert(`✅ ${editFormData.name} başarıyla güncellendi!\n\nYeni Fiyat: ₺${editFormData.price}\nKar Marjı: ${data.newMargin}%`);
+      setEditingProduct(null);
     } catch (error) {
       alert(`❌ Hata: ${String(error)}`);
     } finally {
@@ -242,7 +253,7 @@ export default function ProductsPage() {
 
                   <td className="text-center py-4 px-4">
                     <button 
-                      onClick={() => handleEdit(product.id, product.name)}
+                      onClick={() => handleEditClick(product)}
                       className="text-blue-600 hover:text-blue-700 font-medium text-sm">
                       Düzenle
                     </button>
@@ -270,6 +281,74 @@ export default function ProductsPage() {
           </button>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {editingProduct && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">Ürün Düzenle</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Ürün Adı</label>
+                <input
+                  type="text"
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Fiyat (₺)</label>
+                <input
+                  type="number"
+                  value={editFormData.price}
+                  onChange={(e) => setEditFormData({ ...editFormData, price: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Maliyet (₺)</label>
+                <input
+                  type="number"
+                  value={editFormData.costPrice}
+                  onChange={(e) => setEditFormData({ ...editFormData, costPrice: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Stok</label>
+                <input
+                  type="number"
+                  value={editFormData.inventory}
+                  onChange={(e) => setEditFormData({ ...editFormData, inventory: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-8">
+              <button
+                onClick={handleEditSave}
+                disabled={loading}
+                className="flex-1 btn-primary bg-blue-600 disabled:opacity-50"
+              >
+                {loading ? '⏳ Kaydediliyor...' : '✓ Kaydet'}
+              </button>
+              <button
+                onClick={() => setEditingProduct(null)}
+                disabled={loading}
+                className="flex-1 btn-secondary"
+              >
+                İptal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
