@@ -5,13 +5,46 @@
  * Manage products, view agent recommendations, and optimize pricing
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function ProductsPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [editFormData, setEditFormData] = useState<any>({});
   const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState<any[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/products');
+        const result = await response.json();
+        if (result.success && result.data?.data) {
+          // Map database fields to component fields
+          const mappedProducts = result.data.data.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            price: p.current_price || p.base_price,
+            costPrice: p.cost_price,
+            competitors: p.competitor_prices?.price || p.base_price - 30,
+            margin: ((p.base_price - p.cost_price) / p.base_price * 100).toFixed(1),
+            inventory: p.inventory,
+            recommendation: 'AI önerisi',
+            confidence: 0.88,
+          }));
+          setProducts(mappedProducts);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setProductsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const handleEditClick = (product: any) => {
     setEditingProduct(product);
@@ -41,6 +74,25 @@ export default function ProductsPage() {
         }),
       });
       const data = await response.json();
+      
+      // Refresh products list
+      const refreshResponse = await fetch('/api/products');
+      const refreshResult = await refreshResponse.json();
+      if (refreshResult.success && refreshResult.data?.data) {
+        const mappedProducts = refreshResult.data.data.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          price: p.current_price || p.base_price,
+          costPrice: p.cost_price,
+          competitors: p.competitor_prices?.price || p.base_price - 30,
+          margin: ((p.base_price - p.cost_price) / p.base_price * 100).toFixed(1),
+          inventory: p.inventory,
+          recommendation: 'AI önerisi',
+          confidence: 0.88,
+        }));
+        setProducts(mappedProducts);
+      }
+      
       alert(`✅ ${editFormData.name} başarıyla güncellendi!\n\nYeni Fiyat: ₺${editFormData.price}\nKar Marjı: ${data.newMargin}%`);
       setEditingProduct(null);
     } catch (error) {
@@ -49,53 +101,6 @@ export default function ProductsPage() {
       setLoading(false);
     }
   };
-
-  const mockProducts = [
-    {
-      id: 1,
-      name: 'Wireless Headphones',
-      price: 450,
-      costPrice: 200,
-      competitors: 420,
-      margin: 44.4,
-      inventory: 45,
-      recommendation: 'Fiyat düşürün ₺420',
-      confidence: 0.92,
-    },
-    {
-      id: 2,
-      name: 'USB-C Cable',
-      price: 89,
-      costPrice: 30,
-      competitors: 85,
-      margin: 66.3,
-      inventory: 120,
-      recommendation: 'Fiyat uygun, korunmalı',
-      confidence: 0.85,
-    },
-    {
-      id: 3,
-      name: 'Phone Stand',
-      price: 120,
-      costPrice: 60,
-      competitors: 150,
-      margin: 50,
-      inventory: 3,
-      recommendation: 'Stok bitme riski',
-      confidence: 0.88,
-    },
-    {
-      id: 4,
-      name: 'Screen Protector',
-      price: 45,
-      costPrice: 50,
-      competitors: 35,
-      margin: -10,
-      inventory: 200,
-      recommendation: 'Fiyat ₺55 olmalı',
-      confidence: 0.96,
-    },
-  ];
 
   return (
     <div className="space-y-8">
@@ -191,7 +196,7 @@ export default function ProductsPage() {
 
       {/* Products Table */}
       <div className="card">
-        <div className="card-header">Ürün Listesi ({mockProducts.length})</div>
+        <div className="card-header">Ürün Listesi ({products.length})</div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -208,7 +213,7 @@ export default function ProductsPage() {
             </thead>
 
             <tbody className="divide-y">
-              {mockProducts.map((product) => (
+              {products.map((product) => (
                 <tr key={product.id} className="hover:bg-gray-50 transition">
                   <td className="py-4 px-4 font-medium">{product.name}</td>
 
