@@ -3,6 +3,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { sql } from '@vercel/postgres';
 import type { ApiResponse, PaginatedResponse } from '@/types';
 
 /**
@@ -13,32 +14,30 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const page = request.nextUrl.searchParams.get('page') || '1';
     const pageSize = request.nextUrl.searchParams.get('pageSize') || '20';
+    const offset = (parseInt(page) - 1) * parseInt(pageSize);
 
-    // TODO: Fetch from database
-    // For now, return mock data
-    const mockProducts = [
-      {
-        id: 'prod-1',
-        name: 'Sample Product 1',
-        basePrice: 100,
-        currentPrice: 120,
-        costPrice: 50,
-        inventory: 45,
-        category: 'Electronics',
-        description: 'High quality product',
-        lastUpdated: new Date(),
-        createdAt: new Date(),
-      },
-    ];
+    // Fetch from Supabase
+    const { rows } = await sql`
+      SELECT * FROM products
+      ORDER BY updated_at DESC
+      LIMIT ${parseInt(pageSize)} OFFSET ${offset}
+    `;
+
+    const { rows: countRows } = await sql`
+      SELECT COUNT(*) as total FROM products
+    `;
+
+    const total = parseInt(countRows[0].total);
+    const hasMore = offset + parseInt(pageSize) < total;
 
     return NextResponse.json({
       success: true,
       data: {
-        data: mockProducts,
-        total: 1,
+        data: rows,
+        total,
         page: parseInt(page),
         pageSize: parseInt(pageSize),
-        hasMore: false,
+        hasMore,
       } as PaginatedResponse<any>,
       timestamp: new Date().toISOString(),
     } as ApiResponse<any>);
@@ -75,19 +74,29 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // TODO: Save to database
-    const newProduct = {
-      id: `prod-${Date.now()}`,
-      ...body,
-      currentPrice: body.basePrice,
-      lastUpdated: new Date(),
-      createdAt: new Date(),
-    };
+    // Insert into Supabase
+    const { rows } = await sql`
+      INSERT INTO products (
+        seller_id, name, description, base_price, current_price, cost_price,
+        category, inventory, competitor_prices
+      ) VALUES (
+        ${body.sellerId || 'default-seller'},
+        ${body.name},
+        ${body.description || ''},
+        ${body.basePrice},
+        ${body.currentPrice || body.basePrice},
+        ${body.costPrice},
+        ${body.category || 'Uncategorized'},
+        ${body.inventory || 0},
+        ${JSON.stringify(body.competitorPrices || {})}
+      )
+      RETURNING *
+    `;
 
     return NextResponse.json(
       {
         success: true,
-        data: newProduct,
+        data: rows[0],
         message: 'Product created successfully',
         timestamp: new Date().toISOString(),
       } as ApiResponse<any>,
