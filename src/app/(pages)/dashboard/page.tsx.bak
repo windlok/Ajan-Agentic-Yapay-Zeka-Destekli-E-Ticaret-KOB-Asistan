@@ -1,0 +1,206 @@
+'use client';
+
+/**
+ * Home Page - Landing/Welcome Page
+ * Quick introduction and navigation to main features
+ */
+
+import Link from 'next/link';
+
+export default function HomePage() {
+  return (
+    <div className="min-h-screen space-y-12">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg p-12 shadow-lg">
+        <div className="max-w-2xl">
+          <h1 className="text-5xl font-bold mb-4">🤖 AI Commerce Agent</h1>
+          <p className="text-xl mb-6 text-blue-100">
+            Gemini AI ile otonom fiyatlandırma, finansal yönetim ve pazar analizi
+          </p>
+          <p className="text-blue-200 mb-8">
+            E-ticaret KOBİ'leri için yapay zeka destekli otonom asistan. Fiyatlarınızı pazara göre
+            otomatik güncelleyin, kâr/zarar durumunu gerçek zamanlı izleyin ve müşteri geri bildirimlerine göre
+            ürün açıklamalarını optimize edin.
+          </p>
+
+          <div className="flex gap-4">
+            <Link href="/dashboard" className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition">
+              Dashboard'a Git →
+            </Link>
+            <a href="#" className="px-6 py-3 bg-blue-700 text-white font-semibold rounded-lg hover:bg-blue-800 transition">
+              Dokümantasyon
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-4 gap-4">
+        <div className="card text-center">
+          <div className="text-3xl font-bold text-blue-600">50K</div>
+          <p className="text-gray-600 mt-2">₺ Aylık Gelir</p>
+        </div>
+        <div className="card text-center">
+          <div className="text-3xl font-bold text-green-600">12.5K</div>
+          <p className="text-gray-600 mt-2">₺ Aylık Kar</p>
+        </div>
+        <div className="card text-center">
+          <div className="text-3xl font-bold text-purple-600">25%</div>
+          <p className="text-gray-600 mt-2">Kar Marjı</p>
+        </div>
+        <div className="card text-center">
+          <div className="text-3xl font-bold text-orange-600">24</div>
+          <p className="text-gray-600 mt-2">Aktif Ürün</p>
+        </div>
+      </div>
+
+      {/* Main Features */}
+      <div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-8">🎯 Temel Özellikler</h2>
+
+        <div className="grid grid-cols-3 gap-6">
+          {/* Feature 1 */}
+          <div className="card hover:shadow-lg transition">
+            <div className="text-4xl mb-4">💰</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Fiyat Optimizasyonu</h3>
+            <p className="text-gray-600 mb-4">
+              Gemini AI pazarı analiz ederek ürünlerinizi otomatik olarak en uygun fiyata getiriyor.
+            </p>
+            <Link href="/products" className="text-blue-600 font-semibold hover:text-blue-700">
+              Ürünleri Görüntüle →
+            </Link>
+          </div>
+
+          {/* Feature 2 */}
+          <div className="card hover:shadow-lg transition">
+            <div className="text-4xl mb-4">📊</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Finansal Analiz</h3>
+            <p className="text-gray-600 mb-4">
+              Gerçek zamanlı kar/zarar hesaplaması ve AI-powered finansal öneriler.
+            </p>
+            <Link href="/financial" className="text-blue-600 font-semibold hover:text-blue-700">
+              Finansal Durum →
+            </Link>
+          </div>
+
+          {/* Feature 3 */}
+          <div className="card hover:shadow-lg transition">
+            <div className="text-4xl mb-4">🔍</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Rakip Analizi</h3>
+            <p className="text-gray-600 mb-4">
+              Pazar trendleri ve rakip fiyatlandırması otomatik olarak izlenir.
+            </p>
+            <a href="#" className="text-blue-600 font-semibold hover:text-blue-700">
+              Rapor Oluştur →
+            </a>
+          </div>
+
+          {/* Feature 4 */}
+          <div className="card hover:shadow-lg transition">
+            <div className="text-4xl mb-4">📝</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Açıklama Optimizasyonu</h3>
+            <p className="text-gray-600 mb-4">
+              Müşteri geri bildirimlerine göre ürün açıklamaları AI tarafından iyileştirilir.
+            </p>
+            <a href="#" className="text-blue-600 font-semibold hover:text-blue-700">
+              Örnekleri Gör →
+            </a>
+          </div>
+
+          {/* Feature 5 */}
+          <div className="card hover:shadow-lg transition">
+            <div className="text-4xl mb-4">🤖</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Otonom Agent</h3>
+            <p className="text-gray-600 mb-4">
+              Sistem bağımsız olarak çalışır, kararlar alır ve aksiyonlar uygular.
+            </p>
+            <a href="#" className="text-blue-600 font-semibold hover:text-blue-700">
+              Ayarları Düzenle →
+            </a>
+          </div>
+
+          {/* Feature 6 */}
+          <div className="card hover:shadow-lg transition">
+            <div className="text-4xl mb-4">⚡</div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Gerçek Zamanlı</h3>
+            <p className="text-gray-600 mb-4">
+              Güncellemeler anında gerçekleşir, hiçbir gecikme yok.
+            </p>
+            <a href="#" className="text-blue-600 font-semibold hover:text-blue-700">
+              Sistem Durumu →
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Tech Stack */}
+      <div className="bg-gray-100 rounded-lg p-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">🛠 Teknoloji Yığını</h2>
+
+        <div className="grid grid-cols-2 gap-8">
+          <div>
+            <h3 className="font-bold text-gray-900 mb-4">Frontend</h3>
+            <ul className="space-y-2 text-gray-700">
+              <li>✓ Next.js 14 (React Framework)</li>
+              <li>✓ TypeScript (Type Safety)</li>
+              <li>✓ Tailwind CSS (Styling)</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-gray-900 mb-4">Backend</h3>
+            <ul className="space-y-2 text-gray-700">
+              <li>✓ Next.js API Routes</li>
+              <li>✓ Node.js Runtime</li>
+              <li>✓ Gemini 2.0 Flash API</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-gray-900 mb-4">Database</h3>
+            <ul className="space-y-2 text-gray-700">
+              <li>✓ PostgreSQL</li>
+              <li>✓ Vercel Postgres (Optional)</li>
+              <li>✓ Redis Cache (Optional)</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-gray-900 mb-4">AI/ML</h3>
+            <ul className="space-y-2 text-gray-700">
+              <li>✓ Google Gemini API</li>
+              <li>✓ Gemini 2.0 Flash Model</li>
+              <li>✓ Agentic Architecture</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Getting Started */}
+      <div className="bg-blue-50 rounded-lg p-8 border-2 border-blue-200">
+        <h2 className="text-2xl font-bold text-blue-900 mb-4">🚀 Hızlı Başlangıç</h2>
+
+        <ol className="space-y-3 text-gray-700">
+          <li>
+            <strong className="text-blue-900">1. Gemini API Key Alın:</strong> Google AI Studio'dan ücretsiz API key oluşturun
+          </li>
+          <li>
+            <strong className="text-blue-900">2. .env.local Dosyasını Yapılandırın:</strong>
+            <code className="block bg-white p-2 rounded mt-1 text-sm">GEMINI_API_KEY=your_key</code>
+          </li>
+          <li>
+            <strong className="text-blue-900">3. npm install yapın:</strong> Tüm dependencies'leri yükleyin
+          </li>
+          <li>
+            <strong className="text-blue-900">4. npm run dev çalıştırın:</strong> Development sunucusu başlatılır
+          </li>
+          <li>
+            <strong className="text-blue-900">5. http://localhost:3000 açın:</strong> Uygulamaya erişin!
+          </li>
+        </ol>
+
+        <button className="mt-6 btn-primary">Yapılandırma Rehberini Oku</button>
+      </div>
+    </div>
+  );
+}
