@@ -8,8 +8,44 @@
 import { useState } from 'react';
 
 export default function DashboardPage() {
-  const handleRiskAction = (actionName: string) => {
-    alert(`📋 ${actionName} detayları açıldı!\n\nDaha fazla bilgi için Financial sayfasını ziyaret edin.`);
+  const [loading, setLoading] = useState(false);
+
+  const handleRiskAction = async (actionType: string) => {
+    setLoading(true);
+    try {
+      let response;
+      if (actionType === 'margin') {
+        response = await fetch('/api/agent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'OPTIMIZE_PRICE' }),
+        });
+      } else if (actionType === 'stock') {
+        response = await fetch('/api/actions/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            productId: 3,
+            productName: 'Phone Stand',
+            currentStock: 3,
+            recommendedQuantity: 50,
+          }),
+        });
+      } else {
+        response = await fetch('/api/agent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'ANALYZE_MARKET' }),
+        });
+      }
+      const data = await response.json();
+      const message = data.response?.analysis || data.orderId || data.analysis || 'İşlem tamamlandı';
+      alert(`✅ İşlem Başarılı!\n\n${message}`);
+    } catch (error) {
+      alert(`❌ Hata: ${String(error)}`);
+    } finally {
+      setLoading(false);
+    }
   };
   return (
     <div className="space-y-8">
@@ -96,24 +132,24 @@ export default function DashboardPage() {
             <div className="p-4 bg-red-50 rounded-lg border border-red-200">
               <p className="font-semibold text-red-900">Düşük Kar Marjı Ürünler</p>
               <p className="text-sm text-red-700 mt-1">8 ürün %10 altında marjla satılıyor</p>
-              <button onClick={() => handleRiskAction('Düşük Kar Marjı Ürünler')} className="mt-3 text-sm font-semibold text-red-600 hover:text-red-700">
-                Ayrıntıları Gör →
+              <button onClick={() => handleRiskAction('margin')} disabled={loading} className="mt-3 text-sm font-semibold text-red-600 hover:text-red-700 disabled:opacity-50">
+                {loading ? '⏳ İşleniyor...' : 'Ayrıntıları Gör →'}
               </button>
             </div>
 
             <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
               <p className="font-semibold text-orange-900">Stok Riski</p>
               <p className="text-sm text-orange-700 mt-1">3 ürün stokta 5 birimden az</p>
-              <button onClick={() => handleRiskAction('Stok Yönetimi')} className="mt-3 text-sm font-semibold text-orange-600 hover:text-orange-700">
-                Yönet →
+              <button onClick={() => handleRiskAction('stock')} disabled={loading} className="mt-3 text-sm font-semibold text-orange-600 hover:text-orange-700 disabled:opacity-50">
+                {loading ? '⏳ İşleniyor...' : 'Yönet →'}
               </button>
             </div>
 
             <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
               <p className="font-semibold text-yellow-900">Fiyat Anomalileri</p>
               <p className="text-sm text-yellow-700 mt-1">Rakiplerden 40% daha yüksek fiyat</p>
-              <button onClick={() => handleRiskAction('Fiyat Önerileri')} className="mt-3 text-sm font-semibold text-yellow-600 hover:text-yellow-700">
-                Öner →
+              <button onClick={() => handleRiskAction('price')} disabled={loading} className="mt-3 text-sm font-semibold text-yellow-600 hover:text-yellow-700 disabled:opacity-50">
+                {loading ? '⏳ İşleniyor...' : 'Öner →'}
               </button>
             </div>
           </div>

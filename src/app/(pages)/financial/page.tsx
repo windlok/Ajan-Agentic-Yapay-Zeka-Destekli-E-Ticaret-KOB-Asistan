@@ -9,10 +9,79 @@ import { useState } from 'react';
 
 export default function FinancialPage() {
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleAction = (action: string) => {
-    setSelectedAction(action);
-    alert(`✅ ${action} işlemi başlatıldı!\n\nBu özellik için Gemini AI'ye bağlantı gereklidir.`);
+  const handlePricingOptimization = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'OPTIMIZE_PRICE' }),
+      });
+      const data = await response.json();
+      alert(`✅ Fiyatlandırma Önerisi Uygulandı!\n\n${data.response?.analysis || 'Fiyatlar güncellendi'}`);
+    } catch (error) {
+      alert(`❌ Hata: ${String(error)}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOrderPlacement = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/actions/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: 3, // Phone Stand
+          productName: 'Phone Stand',
+          currentStock: 3,
+          recommendedQuantity: 50,
+        }),
+      });
+      const data = await response.json();
+      alert(`✅ Sipariş Onaylandı!\n\nSipariş ID: ${data.orderId}\nMiktar: ${data.quantity} birim\nDurum: ${data.status}`);
+    } catch (error) {
+      alert(`❌ Hata: ${String(error)}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleProfitMaximization = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'ASSESS_COMPETITOR' }),
+      });
+      const data = await response.json();
+      alert(`📊 Kar Maksimizasyonu Analizi\n\n${data.response?.analysis || 'Rakip analizi tamamlandı'}`);
+    } catch (error) {
+      alert(`❌ Hata: ${String(error)}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRiskAnalysis = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'GENERATE_REPORT' }),
+      });
+      const data = await response.json();
+      alert(`📋 Keskinlik Analizi\n\n${data.response?.analysis || 'Risk analizi tamamlandı'}`);
+    } catch (error) {
+      alert(`❌ Hata: ${String(error)}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -143,7 +212,9 @@ export default function FinancialPage() {
             <p className="text-sm text-gray-700 mb-3">
               Screen Protector fiyatını ₺45'ten ₺55'e yükselterek marjı %10'dan %22'ye çıkarabili rsiniz.
             </p>
-            <button onClick={() => handleAction('Fiyatlandırma Önerisi')} className="text-sm font-semibold text-blue-600 hover:text-blue-700">Uygula →</button>
+            <button onClick={handlePricingOptimization} disabled={loading} className="text-sm font-semibold text-blue-600 hover:text-blue-700 disabled:opacity-50">
+              {loading ? '⏳ İşleniyor...' : 'Uygula →'}
+            </button>
           </div>
 
           <div className="p-4 bg-white rounded-lg border border-blue-200">
@@ -151,7 +222,9 @@ export default function FinancialPage() {
             <p className="text-sm text-gray-700 mb-3">
               Phone Stand stoku bitme riski taşıyor. Talep tahminine göre 50 adet daha sipariş öneririz.
             </p>
-            <button onClick={() => handleAction('Sipariş Ver')} className="text-sm font-semibold text-blue-600 hover:text-blue-700">Sipariş Ver →</button>
+            <button onClick={handleOrderPlacement} disabled={loading} className="text-sm font-semibold text-blue-600 hover:text-blue-700 disabled:opacity-50">
+              {loading ? '⏳ İşleniyor...' : 'Sipariş Ver →'}
+            </button>
           </div>
 
           <div className="p-4 bg-white rounded-lg border border-blue-200">
@@ -159,7 +232,9 @@ export default function FinancialPage() {
             <p className="text-sm text-gray-700 mb-3">
               Wireless Headphones daha agresif pazarlamaya koyulursa satışlar %30 artabilir.
             </p>
-            <button onClick={() => handleAction('Kar Maksimizasyonu Detayları')} className="text-sm font-semibold text-blue-600 hover:text-blue-700">Detaylar →</button>
+            <button onClick={handleProfitMaximization} disabled={loading} className="text-sm font-semibold text-blue-600 hover:text-blue-700 disabled:opacity-50">
+              {loading ? '⏳ İşleniyor...' : 'Detaylar →'}
+            </button>
           </div>
 
           <div className="p-4 bg-white rounded-lg border border-blue-200">
@@ -167,7 +242,9 @@ export default function FinancialPage() {
             <p className="text-sm text-gray-700 mb-3">
               Son 7 günde USD volatilitesi yükseldi. Fiyatları ABD'den ithal ürünler için kontrol edin.
             </p>
-            <button onClick={() => handleAction('Keskinlik Analizi')} className="text-sm font-semibold text-blue-600 hover:text-blue-700">Analiz →</button>
+            <button onClick={handleRiskAnalysis} disabled={loading} className="text-sm font-semibold text-blue-600 hover:text-blue-700 disabled:opacity-50">
+              {loading ? '⏳ İşleniyor...' : 'Analiz →'}
+            </button>
           </div>
         </div>
       </div>

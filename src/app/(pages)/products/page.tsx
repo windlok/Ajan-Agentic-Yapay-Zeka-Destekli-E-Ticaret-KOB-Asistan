@@ -10,10 +10,33 @@ import { useState } from 'react';
 export default function ProductsPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleEdit = (productId: number, productName: string) => {
-    setEditingProduct(productId);
-    alert(`✏️ ${productName} düzenleme formu açıldı!\n\nBu özellik için çift tıklayarak veya modal üzerinden düzenleyebilirsiniz.`);
+  const handleEdit = async (productId: number, productName: string) => {
+    const newPrice = prompt(`${productName} için yeni fiyat girin (₺):`, '');
+    if (!newPrice) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch('/api/actions/update-product', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId,
+          name: productName,
+          description: `Updated ${productName}`,
+          basePrice: parseInt(newPrice),
+          costPrice: 100,
+          inventory: 50,
+        }),
+      });
+      const data = await response.json();
+      alert(`✅ ${productName} başarıyla güncellendi!\n\nYeni Fiyat: ₺${newPrice}\nKar Marjı: ${data.newMargin}%`);
+    } catch (error) {
+      alert(`❌ Hata: ${String(error)}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const mockProducts = [
