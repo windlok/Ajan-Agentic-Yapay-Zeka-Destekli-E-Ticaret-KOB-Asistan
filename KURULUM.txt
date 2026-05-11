@@ -1,0 +1,148 @@
+================================================================================
+AI COMMERCE AGENT - KURULUM REHBERI
+================================================================================
+
+Bu rehberi takip ederek projeyi hazırlamanız ve çalıştırmanız gerekir.
+
+================================================================================
+1. SISTEM GEREKSİNİMLERİ
+================================================================================
+
+Aşağıdaki yazılımları bilgisayarınıza yüklü olup olmadığını kontrol edin:
+
+✓ Node.js (18.x veya 20.x sürümü)
+  Kontrol: Komut satırına 'node --version' yazın
+  Yüklü değilse: https://nodejs.org indir
+
+✓ npm (Node.js ile birlikte gelir)
+  Kontrol: Komut satırına 'npm --version' yazın
+
+✓ Git (opsiyonel, yalnızca repository klonlaması için)
+  Kontrol: Komut satırına 'git --version' yazın
+
+================================================================================
+2. PROJE DOSYALARINI HAZIRLA
+================================================================================
+
+Komut satırında aşağıdaki adımları takip edin:
+
+a) Proje klasörüne girin:
+   cd "C:\Users\User\Desktop\Ajan-Agentic-Yapay-Zeka-Destekli-E-Ticaret-KOB-Asistan-"
+
+b) Tüm bağımlılıkları yükleyin:
+   npm install
+
+   (Bu işlem 2-3 dakika sürebilir)
+
+================================================================================
+3. API ANAHTAR (KEY) OLUŞTUR
+================================================================================
+
+Projede Google Gemini AI kullanılıyor. Bunun için ücretsiz API anahtarı gerekir:
+
+a) Web tarayıcısında aç:
+   https://aistudio.google.com
+
+b) "Get API Key" düğmesine tıkla
+
+c) "Create API key in new Google Cloud project" seçeneğini seç
+
+d) Oluşturulan API anahtarını kopyala
+
+================================================================================
+4. ENVIRONMENT DÜZENLEMESİ (.env.local dosyası)
+================================================================================
+
+a) Proje klasöründe .env.local adında bir dosya oluştur
+   (Not: Dosya adının başında nokta vardır: .env.local)
+
+b) Dosyayı metin editörü ile aç (Notepad vb.)
+
+c) Aşağıdaki satırları yazıp kaydet:
+
+   GEMINI_API_KEY=buraya_api_anahtarini_yaz
+   NEXT_PUBLIC_API_URL=http://localhost:3000
+
+   (GEMINI_API_KEY= kısmından sonra 3. adımda kopyaladığın anahtarı yapıştır)
+
+d) Dosyayı kaydet
+
+================================================================================
+5. PROJEYI ÇALIŞTIRAT
+================================================================================
+
+Komut satırında aşağıdakini yazın:
+
+   npm run dev
+
+Eğer başarılı olursa, şöyle bir mesaj göreceksin:
+   "ready - started server on 0.0.0.0:3000"
+
+================================================================================
+6. WEB TARAYICISINDA AÇMA
+================================================================================
+
+Web tarayıcınızı açın ve adres çubuğuna şunu yazın:
+
+   http://localhost:3000
+
+Artık proje hazır ve çalışıyor!
+
+================================================================================
+7. YAYGIND SORUNLAR VE ÇÖZÜMLERI
+================================================================================
+
+SORUN: "node command not found" hatası
+ÇÖZÜM: Node.js yüklenmemiş veya yol ayarlanmamış. Node.js'i yeniden yükle.
+
+SORUN: "npm ERR! 404" hatası
+ÇÖZÜM: İnternet bağlantısını kontrol et ve npm install komutunu tekrar çalıştır.
+
+SORUN: API anahtarı hatası
+ÇÖZÜM: .env.local dosyasındaki anahtarın doğru olup olmadığını kontrol et.
+
+SORUN: "Port 3000 zaten kullanılıyor" hatası
+ÇÖZÜM: Başka bir proje çalışıyor. Onu kapat veya farklı port kullan:
+       npm run dev -- -p 3001
+
+================================================================================
+8. YARARLI KOMUTLAR
+================================================================================
+
+Projeyi çalıştır (geliştirme modu):
+   npm run dev
+
+Projeyi derle (üretime hazırla):
+   npm run build
+
+Üretime sunucusu başlat:
+   npm start
+
+Kod biçimlendir (güzel görünmesini sağla):
+   npm run format
+
+TypeScript türlerini kontrol et:
+   npm run type-check
+
+================================================================================
+9. PROJE YAPISI
+================================================================================
+
+src/app/            → Web sitesi sayfaları ve API yolları
+src/components/     → Tekrar kullanılabilir arayüz bileşenleri
+src/lib/            → Yardımcı fonksiyonlar ve API entegrasyonları
+src/types/          → TypeScript tür tanımları
+public/             → İndirilebilir dosyalar (resimler vb.)
+
+================================================================================
+10. SONRAKI ADIMLAR
+================================================================================
+
+1. Komut satırında "npm run dev" çalıştır
+2. http://localhost:3000 adresini tarayıcıda aç
+3. Çalışan projeyi kullan ve test et
+4. Kod değiştirmeleri otomatik olarak yüklenecek
+
+Sorun yaşarsan, hata mesajlarını kopyalayıp Google'de ara.
+
+================================================================================
