@@ -5,33 +5,8 @@
  * Detailed financial analytics and AI-driven insights
  */
 
-import { useState } from 'react';
-
 export default function FinancialPage() {
-  const [notification, setNotification] = useState<string | null>(null);
-
-  const handleApplyAction = async (action: string) => {
-    try {
-      // Call agent API to apply action
-      const response = await fetch('/api/agent/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action,
-          sellerId: 'default-seller',
-        }),
-      });
-
-      if (response.ok) {
-        setNotification(`✅ ${action} başarıyla uygulandı!`);
-        setTimeout(() => setNotification(null), 3000);
-      }
-    } catch (error) {
-      console.error('Action failed:', error);
-      setNotification('❌ İşlem başarısız oldu');
-      setTimeout(() => setNotification(null), 3000);
-    }
-  };
+  return (
     <div className="space-y-8">
       {/* Header */}
       <div>
@@ -153,24 +128,13 @@ export default function FinancialPage() {
       <div className="card bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300">
         <div className="card-header text-blue-900">🧠 AI Finansal İçgörüler</div>
 
-        {notification && (
-          <div className="mb-4 p-3 bg-blue-100 border border-blue-400 rounded-lg text-blue-900">
-            {notification}
-          </div>
-        )}
-
         <div className="grid grid-cols-2 gap-6">
           <div className="p-4 bg-white rounded-lg border border-blue-200">
             <h4 className="font-semibold text-blue-900 mb-2">Fiyatlandırma Önerisi</h4>
             <p className="text-sm text-gray-700 mb-3">
               Screen Protector fiyatını ₺45'ten ₺55'e yükselterek marjı %10'dan %22'ye çıkarabili rsiniz.
             </p>
-            <button 
-              onClick={() => handleApplyAction('OPTIMIZE_PRICE')}
-              className="text-sm font-semibold text-blue-600 hover:text-blue-700"
-            >
-              Uygula →
-            </button>
+            <button className="text-sm font-semibold text-blue-600 hover:text-blue-700">Uygula →</button>
           </div>
 
           <div className="p-4 bg-white rounded-lg border border-blue-200">
@@ -178,12 +142,7 @@ export default function FinancialPage() {
             <p className="text-sm text-gray-700 mb-3">
               Phone Stand stoku bitme riski taşıyor. Talep tahminine göre 50 adet daha sipariş öneririz.
             </p>
-            <button 
-              onClick={() => handleApplyAction('ANALYZE_MARKET')}
-              className="text-sm font-semibold text-blue-600 hover:text-blue-700"
-            >
-              Sipariş Ver →
-            </button>
+            <button className="text-sm font-semibold text-blue-600 hover:text-blue-700">Sipariş Ver →</button>
           </div>
 
           <div className="p-4 bg-white rounded-lg border border-blue-200">
@@ -191,12 +150,7 @@ export default function FinancialPage() {
             <p className="text-sm text-gray-700 mb-3">
               Wireless Headphones daha agresif pazarlamaya koyulursa satışlar %30 artabilir.
             </p>
-            <button 
-              onClick={() => handleApplyAction('IMPROVE_DESCRIPTION')}
-              className="text-sm font-semibold text-blue-600 hover:text-blue-700"
-            >
-              Detaylar →
-            </button>
+            <button className="text-sm font-semibold text-blue-600 hover:text-blue-700">Detaylar →</button>
           </div>
 
           <div className="p-4 bg-white rounded-lg border border-blue-200">
@@ -204,12 +158,7 @@ export default function FinancialPage() {
             <p className="text-sm text-gray-700 mb-3">
               Son 7 günde USD volatilitesi yükseldi. Fiyatları ABD'den ithal ürünler için kontrol edin.
             </p>
-            <button 
-              onClick={() => handleApplyAction('ASSESS_COMPETITOR')}
-              className="text-sm font-semibold text-blue-600 hover:text-blue-700"
-            >
-              Analiz →
-            </button>
+            <button className="text-sm font-semibold text-blue-600 hover:text-blue-700">Analiz →</button>
           </div>
         </div>
       </div>
