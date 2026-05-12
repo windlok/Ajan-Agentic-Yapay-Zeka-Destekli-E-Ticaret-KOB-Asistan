@@ -3,7 +3,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@vercel/postgres';
+import { supabase } from '@/lib/supabase'; 
 import type { ApiResponse, PaginatedResponse } from '@/types';
 
 /**
@@ -14,29 +14,32 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const page = request.nextUrl.searchParams.get('page') || '1';
     const pageSize = request.nextUrl.searchParams.get('pageSize') || '20';
-    const offset = (parseInt(page) - 1) * parseInt(pageSize);
+    const pageNum = parseInt(page);
+    const pageSizeNum = parseInt(pageSize);
+    const from = (pageNum - 1) * pageSizeNum;
+    const to = from + pageSizeNum - 1;
 
-    // Fetch from Supabase
-    const { rows } = await sql`
-      SELECT * FROM products
-      ORDER BY updated_at DESC
-      LIMIT ${parseInt(pageSize)} OFFSET ${offset}
-    `;
+    console.log('Fetching products using Supabase Client (HTTP)...');
+    
+    // Fetch from Supabase using HTTP client
+    const { data, error, count } = await supabase
+      .from('products')
+      .select('*', { count: 'exact' })
+      .order('id', { ascending: true }) // updated_at yerine id ile sıralayalım
+      .range(from, to);
 
-    const { rows: countRows } = await sql`
-      SELECT COUNT(*) as total FROM products
-    `;
+    if (error) throw error;
 
-    const total = parseInt(countRows[0].total);
-    const hasMore = offset + parseInt(pageSize) < total;
+    const total = count || 0;
+    const hasMore = to < total - 1;
 
     return NextResponse.json({
       success: true,
       data: {
-        data: rows,
+        data: data || [],
         total,
-        page: parseInt(page),
-        pageSize: parseInt(pageSize),
+        page: pageNum,
+        pageSize: pageSizeNum,
         hasMore,
       } as PaginatedResponse<any>,
       timestamp: new Date().toISOString(),
@@ -46,7 +49,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to fetch products',
+        error: String(error),
         timestamp: new Date().toISOString(),
       } as ApiResponse<null>,
       { status: 500 }

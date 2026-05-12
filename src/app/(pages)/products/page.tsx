@@ -67,30 +67,41 @@ export default function ProductsPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('/api/products');
+        const response = await fetch('/api/products', { cache: 'no-store' });
         const result = await response.json();
+        
+        console.log('API Result:', result); // Debug için log ekledik
+
         if (result.success && result.data?.data && result.data.data.length > 0) {
           // Map database fields to component fields
-          const mappedProducts = result.data.data.map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            price: p.current_price || p.base_price,
-            costPrice: p.cost_price,
-            competitors: p.competitor_prices?.price || p.base_price - 30,
-            margin: ((p.base_price - p.cost_price) / p.base_price * 100).toFixed(1),
-            inventory: p.inventory,
-            recommendation: 'AI önerisi',
-            confidence: 0.88,
-          }));
+          const mappedProducts = result.data.data.map((p: any) => {
+            const costPrice = parseFloat(p.cost_price) || 0;
+            const currentPrice = parseFloat(p.current_price) || parseFloat(p.base_price) || 0;
+            const competitorPrices = p.competitor_prices || {};
+            const avgCompetitorPrice = Object.values(competitorPrices).length > 0 
+              ? (Object.values(competitorPrices) as number[]).reduce((a, b) => a + b, 0) / Object.values(competitorPrices).length 
+              : 0;
+            const marginValue = currentPrice > 0 ? ((currentPrice - costPrice) / currentPrice * 100) : 0;
+            
+            return {
+              id: p.id,
+              name: p.name,
+              price: currentPrice,
+              costPrice: costPrice,
+              competitors: Math.round(avgCompetitorPrice),
+              margin: parseFloat(marginValue.toFixed(1)),
+              inventory: p.inventory || 0,
+              recommendation: 'Veritabanından çekildi',
+              confidence: 1.0,
+            };
+          });
           setProducts(mappedProducts);
         } else {
-          // Fallback to mock data if API fails or returns empty
-          console.log('Using mock data as fallback');
+          console.warn('API success false veya veri boş, fallback kullanılıyor');
           setProducts(mockProducts);
         }
       } catch (error) {
         console.error('Error fetching products:', error);
-        // Use mock data as fallback
         setProducts(mockProducts);
       } finally {
         setProductsLoading(false);
@@ -115,29 +126,6 @@ export default function ProductsPage() {
 
     setLoading(true);
     try {
-      // Check if this is a mock product (ID starts with 'test-')
-      if (String(editingProduct.id).startsWith('test-')) {
-        // Update local mock data
-        const newMargin = (((parseInt(editFormData.price) - parseInt(editFormData.costPrice)) / parseInt(editFormData.price) * 100));
-        const updatedProducts = products.map(p => 
-          p.id === editingProduct.id 
-            ? {
-                ...p,
-                name: editFormData.name,
-                price: parseInt(editFormData.price),
-                costPrice: parseInt(editFormData.costPrice),
-                inventory: parseInt(editFormData.inventory),
-                margin: newMargin,
-              }
-            : p
-        );
-        setProducts(updatedProducts);
-        alert(`✅ ${editFormData.name} başarıyla güncellendi! (Demo Mod)\n\nYeni Fiyat: ₺${editFormData.price}`);
-        setEditingProduct(null);
-        return;
-      }
-
-      // For real database products, send update to API
       const response = await fetch('/api/actions/update-product', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -151,29 +139,37 @@ export default function ProductsPage() {
         }),
       });
       const data = await response.json();
-
-      // Check if update was successful
-      if (!response.ok || data.error) {
-        alert(`❌ Güncelleme başarısız!\n\n${data.error || data.details || 'Bilinmeyen hata'}`);
-        return;
+      
+      // Refresh products list
+      const refreshResponse = await fetch('/api/products', { cache: 'no-store' });
+      const refreshResult = await refreshResponse.json();
+      if (refreshResult.success && refreshResult.data?.data) {
+        const mappedProducts = refreshResult.data.data.map((p: any) => {
+          const costPrice = parseFloat(p.cost_price) || 0;
+          const currentPrice = parseFloat(p.current_price) || parseFloat(p.base_price) || 0;
+          const competitorPrices = p.competitor_prices || {};
+          const avgCompetitorPrice = Object.values(competitorPrices).length > 0 
+            ? (Object.values(competitorPrices) as number[]).reduce((a, b) => a + b, 0) / Object.values(competitorPrices).length 
+            : 0;
+          const marginValue = currentPrice > 0 ? ((currentPrice - costPrice) / currentPrice * 100) : 0;
+          
+          return {
+            id: p.id,
+            name: p.name,
+            price: currentPrice,
+            costPrice: costPrice,
+            competitors: Math.round(avgCompetitorPrice),
+            margin: parseFloat(marginValue.toFixed(1)),
+            inventory: p.inventory || 0,
+            recommendation: 'Güncellendi',
+            confidence: 1.0,
+          };
+        });
+        setProducts(mappedProducts);
       }
-
-      // Update local state with response from database
-      const updatedProducts = products.map(p => 
-        p.id === editingProduct.id 
-          ? {
-              ...p,
-              name: data.product.name,
-              price: data.product.current_price || data.product.base_price,
-              costPrice: data.product.cost_price,
-              inventory: data.product.inventory,
-              margin: data.newMargin,
-            }
-          : p
-      );
-      setProducts(updatedProducts);
-
-      alert(`✅ ${editFormData.name} başarıyla güncellendi!\n\nYeni Fiyat: ₺${editFormData.price}\nKar Marjı: ${data.newMargin}%`);
+      
+      const marginVal = data.newMargin || ((parseInt(editFormData.price) - parseInt(editFormData.costPrice)) / parseInt(editFormData.price) * 100).toFixed(1);
+      alert(`✅ ${editFormData.name} başarıyla güncellendi!\n\nYeni Fiyat: ₺${editFormData.price}\nKar Marjı: %${marginVal}`);
       setEditingProduct(null);
     } catch (error) {
       alert(`❌ Hata: ${String(error)}`);
