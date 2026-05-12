@@ -83,6 +83,9 @@ export default function ProductsPage() {
               : 0;
             const marginValue = currentPrice > 0 ? ((currentPrice - costPrice) / currentPrice * 100) : 0;
             
+            // Mock önerilerinden eşleştir
+            const mockProduct = mockProducts.find(m => m.name === p.name);
+            
             return {
               id: p.id,
               name: p.name,
@@ -91,8 +94,8 @@ export default function ProductsPage() {
               competitors: Math.round(avgCompetitorPrice),
               margin: parseFloat(marginValue.toFixed(1)),
               inventory: p.inventory || 0,
-              recommendation: 'Veritabanından çekildi',
-              confidence: 1.0,
+              recommendation: mockProduct?.recommendation || 'Analiz Yapılıyor',
+              confidence: mockProduct?.confidence || 0.75,
             };
           });
           setProducts(mappedProducts);
@@ -153,6 +156,9 @@ export default function ProductsPage() {
             : 0;
           const marginValue = currentPrice > 0 ? ((currentPrice - costPrice) / currentPrice * 100) : 0;
           
+          // Mock önerilerinden eşleştir
+          const mockProduct = mockProducts.find(m => m.name === p.name);
+          
           return {
             id: p.id,
             name: p.name,
@@ -161,8 +167,8 @@ export default function ProductsPage() {
             competitors: Math.round(avgCompetitorPrice),
             margin: parseFloat(marginValue.toFixed(1)),
             inventory: p.inventory || 0,
-            recommendation: 'Güncellendi',
-            confidence: 1.0,
+            recommendation: mockProduct?.recommendation || 'Analiz Yapılıyor',
+            confidence: mockProduct?.confidence || 0.75,
           };
         });
         setProducts(mappedProducts);
