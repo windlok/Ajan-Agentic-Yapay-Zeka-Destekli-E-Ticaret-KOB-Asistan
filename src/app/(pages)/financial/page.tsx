@@ -217,63 +217,114 @@ export default function FinancialPage() {
       <div className="grid grid-cols-5 gap-4">
         <div className="metric-box">
           <div className="metric-label">Toplam Gelir</div>
-          <div className="metric-value">₺50.000</div>
+          <div className="metric-value">
+            {products.length > 0 ? `₺${products.reduce((s, p) => s + ((parseFloat(p.current_price) || parseFloat(p.base_price) || 0) * (p.inventory || 0)), 0).toLocaleString('tr-TR', {maximumFractionDigits: 0})}` : 'Yükleniyor...'}
+          </div>
           <p className="text-xs text-blue-600 mt-1">Bu ay</p>
         </div>
 
         <div className="metric-box">
           <div className="metric-label">Toplam Maliyet</div>
-          <div className="metric-value">₺37.500</div>
+          <div className="metric-value">
+            {products.length > 0 ? `₺${products.reduce((s, p) => s + ((parseFloat(p.cost_price) || 0) * (p.inventory || 0)), 0).toLocaleString('tr-TR', {maximumFractionDigits: 0})}` : 'Yükleniyor...'}
+          </div>
           <p className="text-xs text-blue-600 mt-1">Ürün maliyeti</p>
         </div>
 
         <div className="metric-box">
           <div className="metric-label">Brüt Kar</div>
-          <div className="metric-value">₺12.500</div>
-          <p className="text-xs text-green-600 mt-1">↑ 8% artış</p>
+          <div className="metric-value">
+            {products.length > 0 ? (() => {
+              const rev = products.reduce((s, p) => s + ((parseFloat(p.current_price) || parseFloat(p.base_price) || 0) * (p.inventory || 0)), 0);
+              const cost = products.reduce((s, p) => s + ((parseFloat(p.cost_price) || 0) * (p.inventory || 0)), 0);
+              return `₺${(rev - cost).toLocaleString('tr-TR', {maximumFractionDigits: 0})}`;
+            })() : 'Yükleniyor...'}
+          </div>
+          <p className="text-xs text-green-600 mt-1">↑ SQL'den hesaplandı</p>
         </div>
 
         <div className="metric-box">
           <div className="metric-label">Net Kar Marjı</div>
-          <div className="metric-value">25%</div>
-          <p className="text-xs text-blue-600 mt-1">Sektör ort. 20%</p>
+          <div className="metric-value">
+            {products.length > 0 ? (() => {
+              const avg = products.reduce((s, p) => {
+                const price = parseFloat(p.current_price) || parseFloat(p.base_price) || 0;
+                const cost = parseFloat(p.cost_price) || 0;
+                return s + (price > 0 ? ((price - cost) / price) * 100 : 0);
+              }, 0) / products.length;
+              return `%${avg.toFixed(1)}`;
+            })() : 'Yükleniyor...'}
+          </div>
+          <p className="text-xs text-blue-600 mt-1">Sektör ort. %20</p>
         </div>
 
         <div className="metric-box">
           <div className="metric-label">ROI</div>
-          <div className="metric-value">250%</div>
-          <p className="text-xs text-green-600 mt-1">Yüksek verimlilik</p>
+          <div className="metric-value">
+            {products.length > 0 ? (() => {
+              const rev = products.reduce((s, p) => s + ((parseFloat(p.current_price) || parseFloat(p.base_price) || 0) * (p.inventory || 0)), 0);
+              const cost = products.reduce((s, p) => s + ((parseFloat(p.cost_price) || 0) * (p.inventory || 0)), 0);
+              const roi = cost > 0 ? ((rev - cost) / cost * 100) : 0;
+              return `%${roi.toFixed(0)}`;
+            })() : 'Yükleniyor...'}
+          </div>
+          <p className="text-xs text-green-600 mt-1">{products.length > 0 ? (() => {
+            const rev = products.reduce((s, p) => s + ((parseFloat(p.current_price) || parseFloat(p.base_price) || 0) * (p.inventory || 0)), 0);
+            const cost = products.reduce((s, p) => s + ((parseFloat(p.cost_price) || 0) * (p.inventory || 0)), 0);
+            const roi = cost > 0 ? ((rev - cost) / cost * 100) : 0;
+            return roi > 100 ? 'Yüksek verimlilik' : 'Normal verimlilik';
+          })() : '...'}</p>
         </div>
       </div>
 
       {/* Revenue Trend Chart */}
       <div className="card">
-        <div className="card-header">📈 Haftalık Gelir Trendi</div>
+        <div className="card-header">📈 Aylık Gelir Trendi</div>
 
         <div className="h-64 flex items-end justify-around p-6 bg-gray-50 rounded-lg">
-          {[5, 5.5, 5.2, 5.8, 6.2, 6.5, 7.1].map((value, i) => (
+          {monthlyMetrics.length > 0 ? monthlyMetrics.slice().reverse().map((m, i) => {
+            const monthNames = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+            const maxRevenue = Math.max(...monthlyMetrics.map(mm => mm.total_revenue || 0));
+            const barHeight = maxRevenue > 0 ? (m.total_revenue / maxRevenue) * 200 : 50;
+            return (
+              <div key={i} className="flex flex-col items-center gap-2">
+                <span className="text-xs text-gray-500 font-medium">₺{(m.total_revenue / 1000).toFixed(0)}K</span>
+                <div
+                  className="w-10 bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg transition-all duration-500"
+                  style={{ height: `${barHeight}px` }}
+                />
+                <span className="text-xs text-gray-600">{monthNames[(m.month || 1) - 1]}</span>
+              </div>
+            );
+          }) : [5, 5.5, 5.2, 5.8, 6.2].map((value, i) => (
             <div key={i} className="flex flex-col items-center gap-2">
               <div
-                className="w-8 bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg"
+                className="w-10 bg-gradient-to-t from-gray-400 to-gray-300 rounded-t-lg animate-pulse"
                 style={{ height: `${value * 30}px` }}
               />
-              <span className="text-xs text-gray-600">Gün {i + 1}</span>
+              <span className="text-xs text-gray-400">Yükleniyor</span>
             </div>
           ))}
         </div>
 
         <div className="mt-4 flex justify-around text-sm">
           <div>
-            <p className="text-gray-600">Haftalık Toplam</p>
-            <p className="text-lg font-bold text-blue-600">₺42.900</p>
+            <p className="text-gray-600">Toplam Gelir (Ay)</p>
+            <p className="text-lg font-bold text-blue-600">
+              {monthlyMetrics.length > 0 ? `₺${Number(monthlyMetrics[0]?.total_revenue || 0).toLocaleString('tr-TR')}` : 'Yükleniyor...'}
+            </p>
           </div>
           <div>
-            <p className="text-gray-600">Günlük Ortalama</p>
-            <p className="text-lg font-bold text-blue-600">₺6.129</p>
+            <p className="text-gray-600">Toplam Kar (Ay)</p>
+            <p className="text-lg font-bold text-green-600">
+              {monthlyMetrics.length > 0 ? `₺${Number(monthlyMetrics[0]?.total_profit || 0).toLocaleString('tr-TR')}` : 'Yükleniyor...'}
+            </p>
           </div>
           <div>
-            <p className="text-gray-600">Trend</p>
-            <p className="text-lg font-bold text-green-600">↑ +8.5%</p>
+            <p className="text-gray-600">Marj</p>
+            <p className="text-lg font-bold text-blue-600">
+              {monthlyMetrics.length > 0 ? `%${Number(monthlyMetrics[0]?.profit_margin || 0).toFixed(1)}` : '...'}
+            </p>
           </div>
         </div>
       </div>

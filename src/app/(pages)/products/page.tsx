@@ -15,6 +15,11 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
 
+  // Modal state for reports
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [reportTitle, setReportTitle] = useState('');
+  const [reportContent, setReportContent] = useState('');
+
   // Mock products as fallback
   const mockProducts = [
     {
@@ -274,15 +279,212 @@ export default function ProductsPage() {
     }
   };
 
-  const handleBulkImproveDescriptions = () => {
-    alert('🤖 AI Agent ürün açıklamalarını iyileştirme görevine başladı (Simülasyon)');
+  const handleBulkImproveDescriptions = async () => {
+    setLoading(true);
+    try {
+      // Her ürün için açıklama iyileştirme önerisi oluştur
+      let report = '🤖 AI AÇIKLAMA İYİLEŞTİRME RAPORU\n';
+      report += '═'.repeat(45) + '\n\n';
+      report += `📅 Tarih: ${new Date().toLocaleDateString('tr-TR')}\n`;
+      report += `📦 Toplam Ürün: ${products.length}\n\n`;
+      
+      for (const p of products) {
+        const price = p.price || 0;
+        const margin = p.margin || 0;
+        
+        report += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        report += `📌 ${p.name}\n`;
+        report += `   Fiyat: ₺${price} | Marj: %${margin.toFixed(1)}\n\n`;
+        
+        // SEO ve açıklama önerileri
+        if (margin < 0) {
+          report += `   ⚠️ Mevcut Durum: Zarar eden ürün\n`;
+          report += `   💡 Öneri: "Sınırlı stok - son fırsat" gibi aciliyet \n      yaratan ifadeler kullanın. Fiyat artışı ile birlikte\n      premium algısı oluşturun.\n`;
+        } else if (margin > 40) {
+          report += `   ✅ Mevcut Durum: Yüksek marjlı ürün\n`;
+          report += `   💡 Öneri: "En çok satan", "Müşteri favorisi" gibi\n      sosyal kanıt ifadeleri ekleyin. Detaylı teknik\n      özellikler ile premium konumlandırma yapın.\n`;
+        } else {
+          report += `   📊 Mevcut Durum: Ortalama performans\n`;
+          report += `   💡 Öneri: Rakip ürünlerden fark yaratan özellikleri\n      ön plana çıkarın. Anahtar kelimeleri SEO uyumlu\n      şekilde açıklamaya ekleyin.\n`;
+        }
+        report += '\n';
+      }
+      
+      report += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+      report += '\n📋 GENEL ÖNERİLER:\n';
+      report += '• Tüm ürün açıklamalarına anahtar kelime ekleyin\n';
+      report += '• Müşteri yorumlarından çıkan güçlü noktaları vurgulayın\n';
+      report += '• Her açıklamayı 150-300 karakter arasında tutun\n';
+      report += '• Teknik özellikler madde madde listelensin\n';
+      
+      setReportTitle('🤖 Açıklama İyileştirme Raporu');
+      setReportContent(report);
+      setReportModalOpen(true);
+    } catch (error) {
+      alert(`❌ Hata: ${String(error)}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleGenerateFinancialReport = () => {
-    alert('📊 Detaylı finansal rapor oluşturuluyor (Simülasyon)');
+  const handleGenerateFinancialReport = async () => {
+    setLoading(true);
+    try {
+      // Ürün verilerinden kapsamlı finansal rapor oluştur
+      const totalRevenue = products.reduce((sum, p) => sum + (p.price * p.inventory), 0);
+      const totalCost = products.reduce((sum, p) => sum + (p.costPrice * p.inventory), 0);
+      const totalProfit = totalRevenue - totalCost;
+      const avgMargin = products.length > 0 
+        ? products.reduce((sum, p) => sum + p.margin, 0) / products.length 
+        : 0;
+      const riskProducts = products.filter(p => p.margin < 15);
+      const starProducts = products.filter(p => p.margin > 40);
+      const lowStockProducts = products.filter(p => p.inventory < 10);
+      
+      let report = '📊 FİNANSAL DURUM RAPORU\n';
+      report += '═'.repeat(45) + '\n\n';
+      report += `📅 Rapor Tarihi: ${new Date().toLocaleDateString('tr-TR')}\n`;
+      report += `🕐 Oluşturulma: ${new Date().toLocaleTimeString('tr-TR')}\n\n`;
+      
+      report += '┌─────────────────────────────────────────┐\n';
+      report += '│         ÖZET FİNANSAL GÖSTERGELER       │\n';
+      report += '├─────────────────────────────────────────┤\n';
+      report += `│ Toplam Potansiyel Gelir: ₺${totalRevenue.toLocaleString('tr-TR')}\n`;
+      report += `│ Toplam Maliyet:         ₺${totalCost.toLocaleString('tr-TR')}\n`;
+      report += `│ Brüt Kâr:              ₺${totalProfit.toLocaleString('tr-TR')}\n`;
+      report += `│ Ortalama Kâr Marjı:    %${avgMargin.toFixed(1)}\n`;
+      report += `│ Toplam Ürün Sayısı:    ${products.length}\n`;
+      report += '└─────────────────────────────────────────┘\n\n';
+      
+      report += '⭐ YILDIZ ÜRÜNLER (Marj > %40):\n';
+      if (starProducts.length > 0) {
+        starProducts.forEach(p => {
+          report += `   • ${p.name} → Marj: %${p.margin.toFixed(1)}, Stok: ${p.inventory}\n`;
+        });
+      } else {
+        report += '   Yüksek marjlı ürün bulunamadı.\n';
+      }
+      
+      report += '\n⚠️ RİSK ALTINDAKİ ÜRÜNLER (Marj < %15):\n';
+      if (riskProducts.length > 0) {
+        riskProducts.forEach(p => {
+          report += `   • ${p.name} → Marj: %${p.margin.toFixed(1)}, Fiyat: ₺${p.price}\n`;
+        });
+      } else {
+        report += '   Risk altında ürün yok - harika!\n';
+      }
+      
+      report += '\n📦 STOK UYARILARI (Stok < 10):\n';
+      if (lowStockProducts.length > 0) {
+        lowStockProducts.forEach(p => {
+          report += `   • ${p.name} → Stok: ${p.inventory} adet (ACİL SİPARİŞ)\n`;
+        });
+      } else {
+        report += '   Tüm ürün stokları yeterli seviyede.\n';
+      }
+      
+      report += '\n\n📋 ÜRÜN BAZLI DETAY:\n';
+      report += '━'.repeat(45) + '\n';
+      products.forEach((p, i) => {
+        const profitPerUnit = p.price - p.costPrice;
+        const totalProfitProduct = profitPerUnit * p.inventory;
+        report += `${i + 1}. ${p.name}\n`;
+        report += `   Satış: ₺${p.price} | Maliyet: ₺${p.costPrice} | Birim Kâr: ₺${profitPerUnit.toFixed(0)}\n`;
+        report += `   Stok: ${p.inventory} | Toplam Kâr Potansiyeli: ₺${totalProfitProduct.toLocaleString('tr-TR')}\n`;
+        report += `   Marj: %${p.margin.toFixed(1)} | Rakip Fiyat: ₺${p.competitors || 'N/A'}\n\n`;
+      });
+      
+      report += '━'.repeat(45) + '\n';
+      report += '\n🎯 STRATEJİK ÖNERİLER:\n';
+      report += '1. Risk altındaki ürünlerde fiyat revizyonu yapılmalı\n';
+      report += '2. Yıldız ürünlerin stokları artırılmalı\n';
+      report += '3. Düşük stoklu ürünler için acil tedarik planlanmalı\n';
+      report += '4. Rakip fiyatları haftalık kontrol edilmeli\n';
+      report += '5. Kâr marjı %20 altındaki ürünlerde kampanya düzenlenebilir\n';
+      
+      setReportTitle('📊 Finansal Durum Raporu');
+      setReportContent(report);
+      setReportModalOpen(true);
+    } catch (error) {
+      alert(`❌ Hata: ${String(error)}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownloadPDF = () => {
+    // Basit HTML-to-print PDF yöntemi
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>${reportTitle}</title>
+          <style>
+            body { font-family: 'Courier New', monospace; padding: 40px; line-height: 1.6; color: #1a1a1a; }
+            h1 { color: #1e40af; border-bottom: 2px solid #1e40af; padding-bottom: 10px; }
+            pre { white-space: pre-wrap; word-wrap: break-word; font-size: 13px; }
+            .footer { margin-top: 40px; text-align: center; font-size: 11px; color: #666; border-top: 1px solid #ddd; padding-top: 10px; }
+            @media print { body { padding: 20px; } }
+          </style>
+        </head>
+        <body>
+          <h1>${reportTitle}</h1>
+          <pre>${reportContent}</pre>
+          <div class="footer">AI Commerce Agent - KOBİ Otonom Asistan | ${new Date().toLocaleDateString('tr-TR')}</div>
+          <script>setTimeout(() => { window.print(); }, 500);</script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   };
 
   return (
+    <>
+      {/* Report Modal */}
+      {reportModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+          onClick={() => setReportModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+            style={{ animation: 'fadeInReport 0.3s ease-out' }}
+          >
+            {/* Modal Header */}
+            <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-700">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-white">{reportTitle}</h3>
+                <button onClick={() => setReportModalOpen(false)} className="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+              </div>
+            </div>
+            {/* Modal Body */}
+            <div className="px-6 py-5 max-h-[60vh] overflow-y-auto bg-gray-50">
+              <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono leading-relaxed">{reportContent}</pre>
+            </div>
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-white border-t flex justify-between items-center">
+              <p className="text-xs text-gray-500">AI Commerce Agent tarafından oluşturuldu</p>
+              <div className="flex gap-3">
+                <button onClick={handleDownloadPDF} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium text-sm">
+                  📥 PDF İndir
+                </button>
+                <button onClick={() => setReportModalOpen(false)} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm">
+                  Kapat
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      <style jsx>{`
+        @keyframes fadeInReport {
+          from { opacity: 0; transform: scale(0.93) translateY(15px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+      `}</style>
     <div className="space-y-8">
       {/* Header */}
       <div className="flex justify-between items-center">
@@ -542,5 +744,6 @@ export default function ProductsPage() {
         </div>
       )}
     </div>
+    </>
   );
 }
