@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import AgentStartButton from '@/components/AgentStartButton';
+import NotificationBell from '@/components/NotificationBell';
+import DarkModeToggle from '@/components/DarkModeToggle';
+import AIChatbot from '@/components/AIChatbot';
+import PriceSimulator from '@/components/PriceSimulator';
 
 export const metadata: Metadata = {
   title: 'AI Commerce Agent - KOBİ Otonom Asistan',
@@ -43,6 +47,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     💰 Finansal Durum
                   </a>
                 </li>
+                <li>
+                  <PriceSimulator />
+                </li>
               </ul>
 
               <hr className="my-6" />
@@ -68,7 +75,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <header className="bg-white shadow-sm border-b">
               <div className="px-8 py-4 flex justify-between items-center">
                 <h2 className="text-xl font-semibold text-gray-800">Hackathon 26 - AI Commerce Agent</h2>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <DarkModeToggle />
+                  <NotificationBell />
                   <AgentStartButton />
                 </div>
               </div>
@@ -78,6 +87,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="p-8">{children}</div>
           </main>
         </div>
+
+        {/* Floating AI Chatbot */}
+        <AIChatbot />
       </body>
     </html>
   );
