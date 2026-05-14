@@ -1,8 +1,51 @@
 'use client';
 
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 export default function Home() {
+  const [products, setProducts] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('/api/products', { cache: 'no-store' });
+        const result = await res.json();
+        if (result.success && result.data?.data) {
+          setProducts(result.data.data);
+        }
+      } catch (e) {
+        console.error('Ana sayfa veri çekme hatası:', e);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  // Dinamik hesaplamalar
+  const totalRevenue = products.reduce((s, p) => {
+    const price = parseFloat(p.current_price) || parseFloat(p.base_price) || 0;
+    return s + price * (parseInt(p.inventory) || 0);
+  }, 0);
+
+  const totalProfit = products.reduce((s, p) => {
+    const price = parseFloat(p.current_price) || parseFloat(p.base_price) || 0;
+    const cost = parseFloat(p.cost_price) || 0;
+    return s + (price - cost) * (parseInt(p.inventory) || 0);
+  }, 0);
+
+  const avgMargin = products.length > 0
+    ? products.reduce((s, p) => {
+        const price = parseFloat(p.current_price) || parseFloat(p.base_price) || 0;
+        const cost = parseFloat(p.cost_price) || 0;
+        return s + (price > 0 ? ((price - cost) / price) * 100 : 0);
+      }, 0) / products.length
+    : 0;
+
+  const formatK = (num: number) => {
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num.toFixed(0);
+  };
+
   return (
     <div className="min-h-screen space-y-12">
       {/* Hero Section */}
@@ -29,22 +72,30 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Quick Stats */}
+      {/* Quick Stats - SQL'den Dinamik */}
       <div className="grid grid-cols-4 gap-4">
         <div className="card text-center">
-          <div className="text-3xl font-bold text-blue-600">50K</div>
+          <div className="text-3xl font-bold text-blue-600">
+            {products.length > 0 ? formatK(totalRevenue) : '...'}
+          </div>
           <p className="text-gray-600 mt-2">₺ Aylık Gelir</p>
         </div>
         <div className="card text-center">
-          <div className="text-3xl font-bold text-green-600">12.5K</div>
+          <div className="text-3xl font-bold text-green-600">
+            {products.length > 0 ? formatK(totalProfit) : '...'}
+          </div>
           <p className="text-gray-600 mt-2">₺ Aylık Kar</p>
         </div>
         <div className="card text-center">
-          <div className="text-3xl font-bold text-purple-600">25%</div>
+          <div className="text-3xl font-bold text-purple-600">
+            {products.length > 0 ? `${avgMargin.toFixed(0)}%` : '...'}
+          </div>
           <p className="text-gray-600 mt-2">Kar Marjı</p>
         </div>
         <div className="card text-center">
-          <div className="text-3xl font-bold text-orange-600">24</div>
+          <div className="text-3xl font-bold text-orange-600">
+            {products.length > 0 ? products.length : '...'}
+          </div>
           <p className="text-gray-600 mt-2">Aktif Ürün</p>
         </div>
       </div>
@@ -122,7 +173,7 @@ export default function Home() {
             <h3 className="font-bold text-gray-900 mb-4">AI & Database</h3>
             <ul className="space-y-2 text-gray-700">
               <li>✓ Google Gemini API</li>
-              <li>✓ PostgreSQL</li>
+              <li>✓ Supabase (PostgreSQL)</li>
               <li>✓ Agentic Architecture</li>
             </ul>
           </div>

@@ -171,6 +171,53 @@ export default function FinancialPage() {
     document.body.removeChild(link);
   };
 
+  const handleDownloadPDF = () => {
+    if (products.length === 0) { alert('Veri yok'); return; }
+    
+    const rev = products.reduce((s: number, p: any) => s + ((parseFloat(p.current_price) || parseFloat(p.base_price) || 0) * (p.inventory || 0)), 0);
+    const cost = products.reduce((s: number, p: any) => s + ((parseFloat(p.cost_price) || 0) * (p.inventory || 0)), 0);
+    
+    let content = 'FİNANSAL DURUM RAPORU\n';
+    content += '='.repeat(40) + '\n\n';
+    content += `Tarih: ${new Date().toLocaleDateString('tr-TR')}\n\n`;
+    content += `Toplam Gelir: ₺${rev.toLocaleString('tr-TR')}\n`;
+    content += `Toplam Maliyet: ₺${cost.toLocaleString('tr-TR')}\n`;
+    content += `Brüt Kâr: ₺${(rev - cost).toLocaleString('tr-TR')}\n\n`;
+    content += 'ÜRÜN DETAYLARI:\n';
+    content += '-'.repeat(40) + '\n';
+    products.forEach((p: any) => {
+      const price = parseFloat(p.current_price) || parseFloat(p.base_price) || 0;
+      const c = parseFloat(p.cost_price) || 0;
+      content += `${p.name}: Fiyat ₺${price} | Maliyet ₺${c} | Stok: ${p.inventory || 0}\n`;
+    });
+    
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.write(`<html><head><title>Finansal Rapor</title><style>body{font-family:'Courier New',monospace;padding:40px;line-height:1.6}h1{color:#1e40af;border-bottom:2px solid #1e40af;padding-bottom:10px}pre{white-space:pre-wrap;font-size:13px}.f{margin-top:40px;text-align:center;font-size:11px;color:#666;border-top:1px solid #ddd;padding-top:10px}@media print{body{padding:20px}}</style></head><body><h1>📊 Finansal Durum Raporu</h1><pre>${content}</pre><div class="f">AI Commerce Agent | ${new Date().toLocaleDateString('tr-TR')}</div><script>setTimeout(()=>{window.print()},500)<\/script></body></html>`);
+    w.document.close();
+  };
+
+  const handleSendEmail = () => {
+    if (products.length === 0) { alert('Veri yok'); return; }
+    
+    const rev = products.reduce((s: number, p: any) => s + ((parseFloat(p.current_price) || parseFloat(p.base_price) || 0) * (p.inventory || 0)), 0);
+    const cost = products.reduce((s: number, p: any) => s + ((parseFloat(p.cost_price) || 0) * (p.inventory || 0)), 0);
+    const profit = rev - cost;
+    
+    const subject = encodeURIComponent(`Finansal Rapor - ${new Date().toLocaleDateString('tr-TR')}`);
+    const body = encodeURIComponent(
+      `Finansal Durum Raporu\n\n` +
+      `Tarih: ${new Date().toLocaleDateString('tr-TR')}\n\n` +
+      `Toplam Gelir: ₺${rev.toLocaleString('tr-TR')}\n` +
+      `Toplam Maliyet: ₺${cost.toLocaleString('tr-TR')}\n` +
+      `Brüt Kâr: ₺${profit.toLocaleString('tr-TR')}\n` +
+      `Ürün Sayısı: ${products.length}\n\n` +
+      `Bu rapor AI Commerce Agent tarafından otomatik oluşturulmuştur.`
+    );
+    
+    window.open(`mailto:?subject=${subject}&body=${body}`, '_self');
+  };
+
   const handleProfitMaximization = async () => {
     setLoading(true);
     try {
@@ -240,7 +287,7 @@ export default function FinancialPage() {
               return `₺${(rev - cost).toLocaleString('tr-TR', {maximumFractionDigits: 0})}`;
             })() : 'Yükleniyor...'}
           </div>
-          <p className="text-xs text-green-600 mt-1">↑ SQL'den hesaplandı</p>
+          <p className="text-xs text-green-600 mt-1">↑ Canlı hesaplama</p>
         </div>
 
         <div className="metric-box">
@@ -495,9 +542,9 @@ export default function FinancialPage() {
 
       {/* Export Reports */}
       <div className="flex gap-4">
-        <button className="btn-primary" onClick={() => alert('PDF özelliği yapım aşamasında.')}>📊 Rapor Indir (PDF)</button>
+        <button className="btn-primary" onClick={handleDownloadPDF}>📊 Rapor İndir (PDF)</button>
         <button className="btn-secondary" onClick={handleExportExcel}>📤 Excel'e Aktar</button>
-        <button className="btn-success" onClick={() => alert('E-posta özelliği yapım aşamasında.')}>📧 E-posta Gönder</button>
+        <button className="btn-success" onClick={handleSendEmail}>📧 E-posta Gönder</button>
       </div>
     </div>
   );

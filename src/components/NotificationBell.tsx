@@ -122,6 +122,14 @@ export default function NotificationBell() {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
+  const deleteNotification = (id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  const clearAll = () => {
+    setNotifications([]);
+  };
+
   const bgColor: Record<string, string> = {
     danger: 'bg-red-50 border-red-200',
     warning: 'bg-yellow-50 border-yellow-200',
@@ -148,9 +156,14 @@ export default function NotificationBell() {
           style={{ animation: 'slideDown 0.2s ease-out' }}>
           <div className="px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 flex justify-between items-center">
             <h4 className="text-white font-bold text-sm">Bildirimler ({notifications.length})</h4>
-            <button onClick={markAllRead} className="text-white/80 hover:text-white text-xs underline">
-              Tümünü Okundu İşaretle
-            </button>
+            <div className="flex gap-2">
+              <button onClick={markAllRead} className="text-white/80 hover:text-white text-xs underline">
+                Okundu
+              </button>
+              <button onClick={clearAll} className="text-white/80 hover:text-white text-xs underline">
+                Tümünü Sil
+              </button>
+            </div>
           </div>
           <div className="max-h-80 overflow-y-auto">
             {notifications.map((n) => (
@@ -158,9 +171,18 @@ export default function NotificationBell() {
                 key={n.id}
                 className={`px-4 py-3 border-b border-l-4 ${bgColor[n.type]} ${n.read ? 'opacity-60' : ''} hover:opacity-100 transition`}
               >
-                <div className="flex justify-between items-start">
+              <div className="flex justify-between items-start">
                   <p className="font-semibold text-sm text-gray-900">{n.title}</p>
-                  <span className="text-xs text-gray-500 whitespace-nowrap ml-2">{n.time}</span>
+                  <div className="flex items-center gap-2 ml-2">
+                    <span className="text-xs text-gray-500 whitespace-nowrap">{n.time}</span>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}
+                      className="text-gray-400 hover:text-red-500 text-sm leading-none transition"
+                      title="Bildirimi Sil"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
                 <p className="text-xs text-gray-700 mt-1">{n.message}</p>
               </div>

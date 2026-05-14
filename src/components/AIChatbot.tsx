@@ -178,7 +178,7 @@ export default function AIChatbot() {
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-lg">🤖</div>
               <div>
                 <p className="text-white font-bold text-sm">AI Ticaret Asistanı</p>
-                <p className="text-white/70 text-xs">Çevrimiçi • SQL veritabanından cevaplar</p>
+                <p className="text-white/70 text-xs">Çevrimiçi • Anlık ürün verileriyle cevaplar</p>
               </div>
             </div>
           </div>
