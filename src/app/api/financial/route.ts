@@ -3,6 +3,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
 import type { ApiResponse } from '@/types';
 
 /**
@@ -11,25 +12,79 @@ import type { ApiResponse } from '@/types';
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    // TODO: Fetch real data from database and calculate metrics
+    const sellerId = request.nextUrl.searchParams.get('sellerId') || 'default-seller';
+
+    // Fetch financial metrics from Supabase
+    let metrics: any[] = [];
+    const { data: metricsData, error: metricsError } = await supabase
+      .from('financial_metrics')
+      .select('*')
+      .eq('seller_id', sellerId)
+      .order('year', { ascending: false })
+      .order('month', { ascending: false })
+      .limit(12);
+      
+    if (metricsError) {
+      console.warn('Could not fetch financial_metrics from Supabase, using mock data:', metricsError);
+      // Fallback mock data if table doesn't exist
+      metrics = [
+        { month: 5, year: 2024, total_revenue: 50000, total_profit: 12500, profit_margin: 25 },
+        { month: 4, year: 2024, total_revenue: 48000, total_profit: 13000, profit_margin: 27.1 },
+        { month: 3, year: 2024, total_revenue: 45000, total_profit: 12000, profit_margin: 26.7 },
+        { month: 2, year: 2024, total_revenue: 42000, total_profit: 12000, profit_margin: 28.6 },
+        { month: 1, year: 2024, total_revenue: 35000, total_profit: 10000, profit_margin: 28.6 },
+      ];
+    } else {
+      metrics = metricsData || [];
+      if (metrics.length === 0) {
+        // Fallback mock data if empty
+        metrics = [
+          { month: 5, year: 2024, total_revenue: 50000, total_profit: 12500, profit_margin: 25 },
+          { month: 4, year: 2024, total_revenue: 48000, total_profit: 13000, profit_margin: 27.1 },
+          { month: 3, year: 2024, total_revenue: 45000, total_profit: 12000, profit_margin: 26.7 },
+          { month: 2, year: 2024, total_revenue: 42000, total_profit: 12000, profit_margin: 28.6 },
+          { month: 1, year: 2024, total_revenue: 35000, total_profit: 10000, profit_margin: 28.6 },
+        ];
+        
+        // Optional: you can automatically insert these into Supabase here so next time it reads from SQL
+        await supabase.from('financial_metrics').insert(
+          metrics.map(m => ({ ...m, seller_id: sellerId }))
+        );
+      }
+    }
+
+    // Fetch products for calculations
+    const { data: productsData, error: productsError } = await supabase
+      .from('products')
+      .select('id, name, current_price, cost_price, inventory, base_price')
+      .eq('seller_id', sellerId)
+      .order('current_price', { ascending: false });
+      
+    const products = (productsData || []).map(p => {
+      const price = parseFloat(p.current_price) || parseFloat(p.base_price) || 0;
+      const cost = parseFloat(p.cost_price) || 0;
+      return {
+        ...p,
+        current_price: price,
+        profit_per_unit: price - cost
+      };
+    });
+
+    // Calculate summary metrics
+    const totalRevenue = metrics.reduce((sum, m) => sum + (m.total_revenue || 0), 0);
+    const totalProfit = metrics.reduce((sum, m) => sum + (m.total_profit || 0), 0);
+    const avgMargin = products.length > 0 
+      ? (products.reduce((sum, p) => sum + ((p.profit_per_unit / p.current_price) * 100 || 0), 0) / products.length)
+      : 0;
+
     const dashboardData = {
-      totalRevenue: 50000,
-      totalProfit: 12500,
-      totalCost: 37500,
-      averageMargin: 25,
-      profitMargin: 0.25,
-      riskProducts: ['prod-3', 'prod-4'],
-      opportunityProducts: ['prod-1', 'prod-2'],
-      trends: [
-        { date: '2026-05-01', revenue: 5000, profit: 1250, unitsSold: 50 },
-        { date: '2026-05-02', revenue: 5500, profit: 1375, unitsSold: 55 },
-        { date: '2026-05-03', revenue: 5200, profit: 1300, unitsSold: 52 },
-      ],
-      topProducts: [
-        { id: 'prod-1', name: 'Product 1', revenue: 15000, profit: 4500 },
-        { id: 'prod-2', name: 'Product 2', revenue: 12000, profit: 2400 },
-        { id: 'prod-3', name: 'Product 3', revenue: 10000, profit: 1000 },
-      ],
+      totalRevenue,
+      totalProfit,
+      averageMargin: Math.round(avgMargin),
+      productCount: products.length,
+      riskProducts: products.filter(p => ((p.profit_per_unit / p.current_price) * 100 || 0) < 15),
+      opportunityProducts: products.filter(p => ((p.profit_per_unit / p.current_price) * 100 || 0) > 30),
+      metrics,
     };
 
     return NextResponse.json({

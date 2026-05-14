@@ -1,12 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: process.env.NODE_ENV === 'development',
   swcMinify: true,
+  productionBrowserSourceMaps: false,
   images: {
     unoptimized: true,
   },
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
+  },
+  experimental: {
+    optimizePackageImports: ['@google/generative-ai'],
   },
 };
 

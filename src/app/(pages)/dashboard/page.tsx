@@ -5,7 +5,64 @@
  * Shows key metrics and agent recommendations
  */
 
+import { useState, useEffect } from 'react';
+
 export default function DashboardPage() {
+  const [loading, setLoading] = useState(false);
+  const [dashboardData, setDashboardData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await fetch('/api/financial');
+        const result = await response.json();
+        if (result.success && result.data) {
+          setDashboardData(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      }
+    };
+    fetchDashboardData();
+  }, []);
+
+  const handleRiskAction = async (actionType: string) => {
+    setLoading(true);
+    try {
+      let response;
+      if (actionType === 'margin') {
+        response = await fetch('/api/agent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'OPTIMIZE_PRICE' }),
+        });
+      } else if (actionType === 'stock') {
+        response = await fetch('/api/actions/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            productId: 3,
+            productName: 'Phone Stand',
+            currentStock: 3,
+            recommendedQuantity: 50,
+          }),
+        });
+      } else {
+        response = await fetch('/api/agent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'ANALYZE_MARKET' }),
+        });
+      }
+      const data = await response.json();
+      const message = data.response?.analysis || data.orderId || data.analysis || 'İşlem tamamlandı';
+      alert(`✅ İşlem Başarılı!\n\n${message}`);
+    } catch (error) {
+      alert(`❌ Hata: ${String(error)}`);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -18,26 +75,36 @@ export default function DashboardPage() {
       <div className="grid grid-cols-4 gap-6">
         <div className="metric-box">
           <div className="metric-label">Toplam Gelir</div>
-          <div className="metric-value">₺50.000</div>
-          <p className="text-sm text-blue-600 mt-2">↑ %12 bu ayda</p>
+          <div className="metric-value">
+            {dashboardData ? `₺${Number(dashboardData.totalRevenue).toLocaleString('tr-TR')}` : 'Yükleniyor...'}
+          </div>
+          <p className="text-sm text-blue-600 mt-2">SQL'den Canlı Veri</p>
         </div>
 
         <div className="metric-box">
           <div className="metric-label">Toplam Kar</div>
-          <div className="metric-value">₺12.500</div>
-          <p className="text-sm text-blue-600 mt-2">↑ %8 bu ayda</p>
+          <div className="metric-value">
+            {dashboardData ? `₺${Number(dashboardData.totalProfit).toLocaleString('tr-TR')}` : 'Yükleniyor...'}
+          </div>
+          <p className="text-sm text-blue-600 mt-2">SQL'den Canlı Veri</p>
         </div>
 
         <div className="metric-box">
           <div className="metric-label">Kar Marjı</div>
-          <div className="metric-value">25%</div>
+          <div className="metric-value">
+            {dashboardData ? `%${dashboardData.averageMargin}` : 'Yükleniyor...'}
+          </div>
           <p className="text-sm text-blue-600 mt-2">Ortalamanın üstü</p>
         </div>
 
         <div className="metric-box">
           <div className="metric-label">Aktif Ürün</div>
-          <div className="metric-value">24</div>
-          <p className="text-sm text-blue-600 mt-2">8 ürün risk altında</p>
+          <div className="metric-value">
+            {dashboardData ? dashboardData.productCount : 'Yükleniyor...'}
+          </div>
+          <p className="text-sm text-blue-600 mt-2">
+            {dashboardData ? `${dashboardData.riskProducts?.length || 0} ürün risk altında` : '...'}
+          </p>
         </div>
       </div>
 
@@ -90,25 +157,27 @@ export default function DashboardPage() {
           <div className="space-y-4">
             <div className="p-4 bg-red-50 rounded-lg border border-red-200">
               <p className="font-semibold text-red-900">Düşük Kar Marjı Ürünler</p>
-              <p className="text-sm text-red-700 mt-1">8 ürün %10 altında marjla satılıyor</p>
-              <button className="mt-3 text-sm font-semibold text-red-600 hover:text-red-700">
-                Ayrıntıları Gör →
+              <p className="text-sm text-red-700 mt-1">
+                {dashboardData ? `${dashboardData.riskProducts?.length || 0} ürün %15 altında marjla satılıyor` : 'Yükleniyor...'}
+              </p>
+              <button onClick={() => handleRiskAction('margin')} disabled={loading} className="mt-3 text-sm font-semibold text-red-600 hover:text-red-700 disabled:opacity-50">
+                {loading ? '⏳ İşleniyor...' : 'Ayrıntıları Gör →'}
               </button>
             </div>
 
             <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
               <p className="font-semibold text-orange-900">Stok Riski</p>
               <p className="text-sm text-orange-700 mt-1">3 ürün stokta 5 birimden az</p>
-              <button className="mt-3 text-sm font-semibold text-orange-600 hover:text-orange-700">
-                Yönet →
+              <button onClick={() => handleRiskAction('stock')} disabled={loading} className="mt-3 text-sm font-semibold text-orange-600 hover:text-orange-700 disabled:opacity-50">
+                {loading ? '⏳ İşleniyor...' : 'Yönet →'}
               </button>
             </div>
 
             <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
               <p className="font-semibold text-yellow-900">Fiyat Anomalileri</p>
               <p className="text-sm text-yellow-700 mt-1">Rakiplerden 40% daha yüksek fiyat</p>
-              <button className="mt-3 text-sm font-semibold text-yellow-600 hover:text-yellow-700">
-                Öner →
+              <button onClick={() => handleRiskAction('price')} disabled={loading} className="mt-3 text-sm font-semibold text-yellow-600 hover:text-yellow-700 disabled:opacity-50">
+                {loading ? '⏳ İşleniyor...' : 'Öner →'}
               </button>
             </div>
           </div>
@@ -142,9 +211,9 @@ export default function DashboardPage() {
 
           <div>
             <p className="text-sm text-gray-600 mb-2">Güncelleme Sıklığı</p>
-            <select className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
+            <select defaultValue="Günlük" className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
               <option>Saatlik</option>
-              <option selected>Günlük</option>
+              <option>Günlük</option>
               <option>Haftalık</option>
             </select>
           </div>

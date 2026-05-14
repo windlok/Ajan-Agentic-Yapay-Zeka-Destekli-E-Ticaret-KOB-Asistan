@@ -3,6 +3,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase'; 
 import type { ApiResponse, PaginatedResponse } from '@/types';
 
 /**
@@ -13,32 +14,33 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const page = request.nextUrl.searchParams.get('page') || '1';
     const pageSize = request.nextUrl.searchParams.get('pageSize') || '20';
+    const pageNum = parseInt(page);
+    const pageSizeNum = parseInt(pageSize);
+    const from = (pageNum - 1) * pageSizeNum;
+    const to = from + pageSizeNum - 1;
 
-    // TODO: Fetch from database
-    // For now, return mock data
-    const mockProducts = [
-      {
-        id: 'prod-1',
-        name: 'Sample Product 1',
-        basePrice: 100,
-        currentPrice: 120,
-        costPrice: 50,
-        inventory: 45,
-        category: 'Electronics',
-        description: 'High quality product',
-        lastUpdated: new Date(),
-        createdAt: new Date(),
-      },
-    ];
+    console.log('Fetching products using Supabase Client (HTTP)...');
+    
+    // Fetch from Supabase using HTTP client
+    const { data, error, count } = await supabase
+      .from('products')
+      .select('*', { count: 'exact' })
+      .order('id', { ascending: true }) // updated_at yerine id ile sıralayalım
+      .range(from, to);
+
+    if (error) throw error;
+
+    const total = count || 0;
+    const hasMore = to < total - 1;
 
     return NextResponse.json({
       success: true,
       data: {
-        data: mockProducts,
-        total: 1,
-        page: parseInt(page),
-        pageSize: parseInt(pageSize),
-        hasMore: false,
+        data: data || [],
+        total,
+        page: pageNum,
+        pageSize: pageSizeNum,
+        hasMore,
       } as PaginatedResponse<any>,
       timestamp: new Date().toISOString(),
     } as ApiResponse<any>);
@@ -47,7 +49,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to fetch products',
+        error: String(error),
         timestamp: new Date().toISOString(),
       } as ApiResponse<null>,
       { status: 500 }
@@ -75,19 +77,29 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // TODO: Save to database
-    const newProduct = {
-      id: `prod-${Date.now()}`,
-      ...body,
-      currentPrice: body.basePrice,
-      lastUpdated: new Date(),
-      createdAt: new Date(),
-    };
+    // Insert into Supabase
+    const { rows } = await sql`
+      INSERT INTO products (
+        seller_id, name, description, base_price, current_price, cost_price,
+        category, inventory, competitor_prices
+      ) VALUES (
+        ${body.sellerId || 'default-seller'},
+        ${body.name},
+        ${body.description || ''},
+        ${body.basePrice},
+        ${body.currentPrice || body.basePrice},
+        ${body.costPrice},
+        ${body.category || 'Uncategorized'},
+        ${body.inventory || 0},
+        ${JSON.stringify(body.competitorPrices || {})}
+      )
+      RETURNING *
+    `;
 
     return NextResponse.json(
       {
         success: true,
-        data: newProduct,
+        data: rows[0],
         message: 'Product created successfully',
         timestamp: new Date().toISOString(),
       } as ApiResponse<any>,

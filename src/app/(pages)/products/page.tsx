@@ -5,47 +5,53 @@
  * Manage products, view agent recommendations, and optimize pricing
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function ProductsPage() {
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any | null>(null);
+  const [editFormData, setEditFormData] = useState<any>({});
+  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState<any[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
 
+  // Mock products as fallback
   const mockProducts = [
     {
-      id: 1,
+      id: 'test-1',
       name: 'Wireless Headphones',
       price: 450,
       costPrice: 200,
       competitors: 420,
-      margin: 44.4,
+      margin: 55.6,
       inventory: 45,
-      recommendation: 'Fiyat düşürün ₺420',
+      recommendation: 'Fiyat düşürün',
       confidence: 0.92,
     },
     {
-      id: 2,
+      id: 'test-2',
       name: 'USB-C Cable',
       price: 89,
       costPrice: 30,
       competitors: 85,
       margin: 66.3,
       inventory: 120,
-      recommendation: 'Fiyat uygun, korunmalı',
+      recommendation: 'Fiyat uygun',
       confidence: 0.85,
     },
     {
-      id: 3,
+      id: 'test-3',
       name: 'Phone Stand',
       price: 120,
       costPrice: 60,
       competitors: 150,
       margin: 50,
       inventory: 3,
-      recommendation: 'Stok bitme riski',
+      recommendation: 'Stok yükselt',
       confidence: 0.88,
     },
     {
-      id: 4,
+      id: 'test-4',
       name: 'Screen Protector',
       price: 45,
       costPrice: 50,
@@ -56,6 +62,225 @@ export default function ProductsPage() {
       confidence: 0.96,
     },
   ];
+
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/products', { cache: 'no-store' });
+        const result = await response.json();
+        
+        console.log('API Result:', result); // Debug için log ekledik
+
+        if (result.success && result.data?.data && result.data.data.length > 0) {
+          // Map database fields to component fields
+          const mappedProducts = result.data.data.map((p: any) => {
+            const costPrice = parseFloat(p.cost_price) || 0;
+            const currentPrice = parseFloat(p.current_price) || parseFloat(p.base_price) || 0;
+            const competitorPrices = p.competitor_prices || {};
+            const avgCompetitorPrice = Object.values(competitorPrices).length > 0 
+              ? (Object.values(competitorPrices) as number[]).reduce((a, b) => a + b, 0) / Object.values(competitorPrices).length 
+              : 0;
+            const marginValue = currentPrice > 0 ? ((currentPrice - costPrice) / currentPrice * 100) : 0;
+            
+            // Dinamik öneri oluştur
+            let recommendationText = 'Analiz Yapılıyor';
+            let confidenceValue = 0.75;
+            
+            if (marginValue < 0) {
+              recommendationText = 'Zararına satış! Fiyat artırın';
+              confidenceValue = 0.95;
+            } else if (avgCompetitorPrice > 0 && currentPrice > avgCompetitorPrice * 1.05) {
+              recommendationText = 'Fiyat rakiplerin üstünde, düşürün';
+              confidenceValue = 0.88;
+            } else if (avgCompetitorPrice > 0 && currentPrice < avgCompetitorPrice * 0.95) {
+              recommendationText = 'Fiyat düşük, artırabilirsiniz';
+              confidenceValue = 0.92;
+            } else if (p.inventory < 10) {
+              recommendationText = 'Stok çok az, tedarik edin';
+              confidenceValue = 0.85;
+            } else if (marginValue > 40) {
+              recommendationText = 'Harika marj, stok yükselt';
+              confidenceValue = 0.90;
+            } else {
+              recommendationText = 'Fiyat uygun, takipte kalın';
+              confidenceValue = 0.82;
+            }
+            
+            return {
+              id: p.id,
+              name: p.name,
+              price: currentPrice,
+              costPrice: costPrice,
+              competitors: Math.round(avgCompetitorPrice),
+              margin: parseFloat(marginValue.toFixed(1)),
+              inventory: p.inventory || 0,
+              recommendation: recommendationText,
+              confidence: confidenceValue,
+            };
+          });
+          setProducts(mappedProducts);
+        } else {
+          console.warn('API success false veya veri boş, fallback kullanılıyor');
+          setProducts(mockProducts);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setProducts(mockProducts);
+      } finally {
+        setProductsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  const handleEditClick = (product: any) => {
+    setEditingProduct(product);
+    setEditFormData({
+      name: product.name,
+      price: product.price,
+      costPrice: product.costPrice,
+      inventory: product.inventory,
+    });
+  };
+
+  const handleEditSave = async () => {
+    if (!editingProduct) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch('/api/actions/update-product', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: editingProduct.id,
+          name: editFormData.name,
+          description: `Updated ${editFormData.name}`,
+          basePrice: parseInt(editFormData.price),
+          costPrice: parseInt(editFormData.costPrice),
+          inventory: parseInt(editFormData.inventory),
+        }),
+      });
+      const data = await response.json();
+      
+      // Refresh products list
+      const refreshResponse = await fetch('/api/products', { cache: 'no-store' });
+      const refreshResult = await refreshResponse.json();
+      if (refreshResult.success && refreshResult.data?.data) {
+        const mappedProducts = refreshResult.data.data.map((p: any) => {
+          const costPrice = parseFloat(p.cost_price) || 0;
+          const currentPrice = parseFloat(p.current_price) || parseFloat(p.base_price) || 0;
+          const competitorPrices = p.competitor_prices || {};
+          const avgCompetitorPrice = Object.values(competitorPrices).length > 0 
+            ? (Object.values(competitorPrices) as number[]).reduce((a, b) => a + b, 0) / Object.values(competitorPrices).length 
+            : 0;
+          const marginValue = currentPrice > 0 ? ((currentPrice - costPrice) / currentPrice * 100) : 0;
+          
+          // Dinamik öneri oluştur
+          let recommendationText = 'Analiz Yapılıyor';
+          let confidenceValue = 0.75;
+          
+          if (marginValue < 0) {
+            recommendationText = 'Zararına satış! Fiyat artırın';
+            confidenceValue = 0.95;
+          } else if (avgCompetitorPrice > 0 && currentPrice > avgCompetitorPrice * 1.05) {
+            recommendationText = 'Fiyat rakiplerin üstünde, düşürün';
+            confidenceValue = 0.88;
+          } else if (avgCompetitorPrice > 0 && currentPrice < avgCompetitorPrice * 0.95) {
+            recommendationText = 'Fiyat düşük, artırabilirsiniz';
+            confidenceValue = 0.92;
+          } else if (p.inventory < 10) {
+            recommendationText = 'Stok çok az, tedarik edin';
+            confidenceValue = 0.85;
+          } else if (marginValue > 40) {
+            recommendationText = 'Harika marj, stok yükselt';
+            confidenceValue = 0.90;
+          } else {
+            recommendationText = 'Fiyat uygun, takipte kalın';
+            confidenceValue = 0.82;
+          }
+          
+          return {
+            id: p.id,
+            name: p.name,
+            price: currentPrice,
+            costPrice: costPrice,
+            competitors: Math.round(avgCompetitorPrice),
+            margin: parseFloat(marginValue.toFixed(1)),
+            inventory: p.inventory || 0,
+            recommendation: recommendationText,
+            confidence: confidenceValue,
+          };
+        });
+        setProducts(mappedProducts);
+      }
+      
+      const marginVal = data.newMargin || ((parseInt(editFormData.price) - parseInt(editFormData.costPrice)) / parseInt(editFormData.price) * 100).toFixed(1);
+      alert(`✅ ${editFormData.name} başarıyla güncellendi!\n\nYeni Fiyat: ₺${editFormData.price}\nKar Marjı: %${marginVal}`);
+      setEditingProduct(null);
+    } catch (error) {
+      alert(`❌ Hata: ${String(error)}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBulkOptimize = async () => {
+    if (!confirm('Tüm ürünlerin fiyatlarını yapay zeka önerilerine göre otomatik optimize etmek istiyor musunuz? Bu işlem veri tabanına kaydedilecektir.')) return;
+    
+    setLoading(true);
+    let successCount = 0;
+    
+    try {
+      // Sadece mock olmayan, veritabanından gelen id'ye sahip olanları filtrele (id string olanlar mock)
+      // veya hepsini optimize etmeye çalışalım
+      for (const p of products) {
+        let newPrice = p.price;
+        // Basit optimizasyon mantığı (AI simülasyonu)
+        if (p.margin < 0) {
+          newPrice = Math.round(p.costPrice * 1.2); // %20 kar marjı hedefle
+        } else if (p.competitors > 0 && p.price > p.competitors * 1.05) {
+          newPrice = Math.round(p.competitors * 0.98); // Rakiplerin %2 altına in
+        } else if (p.competitors > 0 && p.price < p.competitors * 0.95) {
+          newPrice = Math.round(p.competitors * 0.95); // Fiyatı biraz yukarı çek
+        }
+        
+        if (newPrice !== p.price && typeof p.id === 'number') {
+          // Güncelleme yap
+          await fetch('/api/actions/update-product', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              productId: p.id,
+              name: p.name,
+              description: `AI Optimized ${p.name}`,
+              basePrice: newPrice,
+              costPrice: p.costPrice,
+              inventory: p.inventory,
+            }),
+          });
+          successCount++;
+        }
+      }
+      
+      alert(`✅ Toplu optimizasyon tamamlandı! ${successCount} ürünün fiyatı güncellendi.`);
+      // Sayfayı yenilemek için window reload yapılabilir veya fetchProducts çağrılabilir
+      window.location.reload();
+    } catch (error) {
+      alert(`❌ Optimizasyon sırasında hata: ${String(error)}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBulkImproveDescriptions = () => {
+    alert('🤖 AI Agent ürün açıklamalarını iyileştirme görevine başladı (Simülasyon)');
+  };
+
+  const handleGenerateFinancialReport = () => {
+    alert('📊 Detaylı finansal rapor oluşturuluyor (Simülasyon)');
+  };
 
   return (
     <div className="space-y-8">
@@ -151,7 +376,7 @@ export default function ProductsPage() {
 
       {/* Products Table */}
       <div className="card">
-        <div className="card-header">Ürün Listesi ({mockProducts.length})</div>
+        <div className="card-header">Ürün Listesi ({products.length})</div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -168,7 +393,7 @@ export default function ProductsPage() {
             </thead>
 
             <tbody className="divide-y">
-              {mockProducts.map((product) => (
+              {products.map((product) => (
                 <tr key={product.id} className="hover:bg-gray-50 transition">
                   <td className="py-4 px-4 font-medium">{product.name}</td>
 
@@ -212,7 +437,9 @@ export default function ProductsPage() {
                   </td>
 
                   <td className="text-center py-4 px-4">
-                    <button className="text-blue-600 hover:text-blue-700 font-medium text-sm">
+                    <button 
+                      onClick={() => handleEditClick(product)}
+                      className="text-blue-600 hover:text-blue-700 font-medium text-sm">
                       Düzenle
                     </button>
                   </td>
@@ -228,17 +455,92 @@ export default function ProductsPage() {
         <h3 className="card-header text-blue-900">🤖 Toplu Agent İşlemleri</h3>
 
         <div className="grid grid-cols-3 gap-4">
-          <button className="btn-primary bg-blue-600">
-            Tümünü Optimize Et
+          <button 
+            onClick={handleBulkOptimize}
+            disabled={loading}
+            className="btn-primary bg-blue-600 disabled:opacity-50">
+            {loading ? '⏳ Optimize Ediliyor...' : 'Tümünü Optimize Et'}
           </button>
-          <button className="btn-primary bg-green-600">
+          <button 
+            onClick={handleBulkImproveDescriptions}
+            className="btn-primary bg-green-600">
             Açıklamaları Iyileştir
           </button>
-          <button className="btn-primary bg-orange-600">
+          <button 
+            onClick={handleGenerateFinancialReport}
+            className="btn-primary bg-orange-600">
             Finansal Rapor Oluştur
           </button>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {editingProduct && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">Ürün Düzenle</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Ürün Adı</label>
+                <input
+                  type="text"
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Fiyat (₺)</label>
+                <input
+                  type="number"
+                  value={editFormData.price}
+                  onChange={(e) => setEditFormData({ ...editFormData, price: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Maliyet (₺)</label>
+                <input
+                  type="number"
+                  value={editFormData.costPrice}
+                  onChange={(e) => setEditFormData({ ...editFormData, costPrice: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Stok</label>
+                <input
+                  type="number"
+                  value={editFormData.inventory}
+                  onChange={(e) => setEditFormData({ ...editFormData, inventory: e.target.value })}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-8">
+              <button
+                onClick={handleEditSave}
+                disabled={loading}
+                className="flex-1 btn-primary bg-blue-600 disabled:opacity-50"
+              >
+                {loading ? '⏳ Kaydediliyor...' : '✓ Kaydet'}
+              </button>
+              <button
+                onClick={() => setEditingProduct(null)}
+                disabled={loading}
+                className="flex-1 btn-secondary"
+              >
+                İptal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
