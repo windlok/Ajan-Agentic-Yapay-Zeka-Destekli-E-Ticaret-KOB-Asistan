@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import AgentStartButton from '@/components/AgentStartButton';
 
 export const metadata: Metadata = {
   title: 'AI Commerce Agent - KOBİ Otonom Asistan',
@@ -68,9 +69,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <div className="px-8 py-4 flex justify-between items-center">
                 <h2 className="text-xl font-semibold text-gray-800">Hackathon 26 - AI Commerce Agent</h2>
                 <div className="flex items-center gap-4">
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium">
-                    🚀 Agentic Analiz Başlat
-                  </button>
+                  <AgentStartButton />
                 </div>
               </div>
             </header>

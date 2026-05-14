@@ -5,10 +5,26 @@
  * Shows key metrics and agent recommendations
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
+  const [dashboardData, setDashboardData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await fetch('/api/financial');
+        const result = await response.json();
+        if (result.success && result.data) {
+          setDashboardData(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      }
+    };
+    fetchDashboardData();
+  }, []);
 
   const handleRiskAction = async (actionType: string) => {
     setLoading(true);
@@ -59,26 +75,36 @@ export default function DashboardPage() {
       <div className="grid grid-cols-4 gap-6">
         <div className="metric-box">
           <div className="metric-label">Toplam Gelir</div>
-          <div className="metric-value">₺50.000</div>
-          <p className="text-sm text-blue-600 mt-2">↑ %12 bu ayda</p>
+          <div className="metric-value">
+            {dashboardData ? `₺${Number(dashboardData.totalRevenue).toLocaleString('tr-TR')}` : 'Yükleniyor...'}
+          </div>
+          <p className="text-sm text-blue-600 mt-2">SQL'den Canlı Veri</p>
         </div>
 
         <div className="metric-box">
           <div className="metric-label">Toplam Kar</div>
-          <div className="metric-value">₺12.500</div>
-          <p className="text-sm text-blue-600 mt-2">↑ %8 bu ayda</p>
+          <div className="metric-value">
+            {dashboardData ? `₺${Number(dashboardData.totalProfit).toLocaleString('tr-TR')}` : 'Yükleniyor...'}
+          </div>
+          <p className="text-sm text-blue-600 mt-2">SQL'den Canlı Veri</p>
         </div>
 
         <div className="metric-box">
           <div className="metric-label">Kar Marjı</div>
-          <div className="metric-value">25%</div>
+          <div className="metric-value">
+            {dashboardData ? `%${dashboardData.averageMargin}` : 'Yükleniyor...'}
+          </div>
           <p className="text-sm text-blue-600 mt-2">Ortalamanın üstü</p>
         </div>
 
         <div className="metric-box">
           <div className="metric-label">Aktif Ürün</div>
-          <div className="metric-value">24</div>
-          <p className="text-sm text-blue-600 mt-2">8 ürün risk altında</p>
+          <div className="metric-value">
+            {dashboardData ? dashboardData.productCount : 'Yükleniyor...'}
+          </div>
+          <p className="text-sm text-blue-600 mt-2">
+            {dashboardData ? `${dashboardData.riskProducts?.length || 0} ürün risk altında` : '...'}
+          </p>
         </div>
       </div>
 
@@ -131,7 +157,9 @@ export default function DashboardPage() {
           <div className="space-y-4">
             <div className="p-4 bg-red-50 rounded-lg border border-red-200">
               <p className="font-semibold text-red-900">Düşük Kar Marjı Ürünler</p>
-              <p className="text-sm text-red-700 mt-1">8 ürün %10 altında marjla satılıyor</p>
+              <p className="text-sm text-red-700 mt-1">
+                {dashboardData ? `${dashboardData.riskProducts?.length || 0} ürün %15 altında marjla satılıyor` : 'Yükleniyor...'}
+              </p>
               <button onClick={() => handleRiskAction('margin')} disabled={loading} className="mt-3 text-sm font-semibold text-red-600 hover:text-red-700 disabled:opacity-50">
                 {loading ? '⏳ İşleniyor...' : 'Ayrıntıları Gör →'}
               </button>

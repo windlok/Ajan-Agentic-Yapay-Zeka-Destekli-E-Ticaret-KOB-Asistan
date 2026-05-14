@@ -83,8 +83,29 @@ export default function ProductsPage() {
               : 0;
             const marginValue = currentPrice > 0 ? ((currentPrice - costPrice) / currentPrice * 100) : 0;
             
-            // Mock önerilerinden eşleştir
-            const mockProduct = mockProducts.find(m => m.name === p.name);
+            // Dinamik öneri oluştur
+            let recommendationText = 'Analiz Yapılıyor';
+            let confidenceValue = 0.75;
+            
+            if (marginValue < 0) {
+              recommendationText = 'Zararına satış! Fiyat artırın';
+              confidenceValue = 0.95;
+            } else if (avgCompetitorPrice > 0 && currentPrice > avgCompetitorPrice * 1.05) {
+              recommendationText = 'Fiyat rakiplerin üstünde, düşürün';
+              confidenceValue = 0.88;
+            } else if (avgCompetitorPrice > 0 && currentPrice < avgCompetitorPrice * 0.95) {
+              recommendationText = 'Fiyat düşük, artırabilirsiniz';
+              confidenceValue = 0.92;
+            } else if (p.inventory < 10) {
+              recommendationText = 'Stok çok az, tedarik edin';
+              confidenceValue = 0.85;
+            } else if (marginValue > 40) {
+              recommendationText = 'Harika marj, stok yükselt';
+              confidenceValue = 0.90;
+            } else {
+              recommendationText = 'Fiyat uygun, takipte kalın';
+              confidenceValue = 0.82;
+            }
             
             return {
               id: p.id,
@@ -94,8 +115,8 @@ export default function ProductsPage() {
               competitors: Math.round(avgCompetitorPrice),
               margin: parseFloat(marginValue.toFixed(1)),
               inventory: p.inventory || 0,
-              recommendation: mockProduct?.recommendation || 'Analiz Yapılıyor',
-              confidence: mockProduct?.confidence || 0.75,
+              recommendation: recommendationText,
+              confidence: confidenceValue,
             };
           });
           setProducts(mappedProducts);
@@ -156,8 +177,29 @@ export default function ProductsPage() {
             : 0;
           const marginValue = currentPrice > 0 ? ((currentPrice - costPrice) / currentPrice * 100) : 0;
           
-          // Mock önerilerinden eşleştir
-          const mockProduct = mockProducts.find(m => m.name === p.name);
+          // Dinamik öneri oluştur
+          let recommendationText = 'Analiz Yapılıyor';
+          let confidenceValue = 0.75;
+          
+          if (marginValue < 0) {
+            recommendationText = 'Zararına satış! Fiyat artırın';
+            confidenceValue = 0.95;
+          } else if (avgCompetitorPrice > 0 && currentPrice > avgCompetitorPrice * 1.05) {
+            recommendationText = 'Fiyat rakiplerin üstünde, düşürün';
+            confidenceValue = 0.88;
+          } else if (avgCompetitorPrice > 0 && currentPrice < avgCompetitorPrice * 0.95) {
+            recommendationText = 'Fiyat düşük, artırabilirsiniz';
+            confidenceValue = 0.92;
+          } else if (p.inventory < 10) {
+            recommendationText = 'Stok çok az, tedarik edin';
+            confidenceValue = 0.85;
+          } else if (marginValue > 40) {
+            recommendationText = 'Harika marj, stok yükselt';
+            confidenceValue = 0.90;
+          } else {
+            recommendationText = 'Fiyat uygun, takipte kalın';
+            confidenceValue = 0.82;
+          }
           
           return {
             id: p.id,
@@ -167,8 +209,8 @@ export default function ProductsPage() {
             competitors: Math.round(avgCompetitorPrice),
             margin: parseFloat(marginValue.toFixed(1)),
             inventory: p.inventory || 0,
-            recommendation: mockProduct?.recommendation || 'Analiz Yapılıyor',
-            confidence: mockProduct?.confidence || 0.75,
+            recommendation: recommendationText,
+            confidence: confidenceValue,
           };
         });
         setProducts(mappedProducts);
@@ -182,6 +224,62 @@ export default function ProductsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleBulkOptimize = async () => {
+    if (!confirm('Tüm ürünlerin fiyatlarını yapay zeka önerilerine göre otomatik optimize etmek istiyor musunuz? Bu işlem veri tabanına kaydedilecektir.')) return;
+    
+    setLoading(true);
+    let successCount = 0;
+    
+    try {
+      // Sadece mock olmayan, veritabanından gelen id'ye sahip olanları filtrele (id string olanlar mock)
+      // veya hepsini optimize etmeye çalışalım
+      for (const p of products) {
+        let newPrice = p.price;
+        // Basit optimizasyon mantığı (AI simülasyonu)
+        if (p.margin < 0) {
+          newPrice = Math.round(p.costPrice * 1.2); // %20 kar marjı hedefle
+        } else if (p.competitors > 0 && p.price > p.competitors * 1.05) {
+          newPrice = Math.round(p.competitors * 0.98); // Rakiplerin %2 altına in
+        } else if (p.competitors > 0 && p.price < p.competitors * 0.95) {
+          newPrice = Math.round(p.competitors * 0.95); // Fiyatı biraz yukarı çek
+        }
+        
+        if (newPrice !== p.price && typeof p.id === 'number') {
+          // Güncelleme yap
+          await fetch('/api/actions/update-product', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              productId: p.id,
+              name: p.name,
+              description: `AI Optimized ${p.name}`,
+              basePrice: newPrice,
+              costPrice: p.costPrice,
+              inventory: p.inventory,
+            }),
+          });
+          successCount++;
+        }
+      }
+      
+      alert(`✅ Toplu optimizasyon tamamlandı! ${successCount} ürünün fiyatı güncellendi.`);
+      // Sayfayı yenilemek için window reload yapılabilir veya fetchProducts çağrılabilir
+      window.location.reload();
+    } catch (error) {
+      alert(`❌ Optimizasyon sırasında hata: ${String(error)}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBulkImproveDescriptions = () => {
+    alert('🤖 AI Agent ürün açıklamalarını iyileştirme görevine başladı (Simülasyon)');
+  };
+
+  const handleGenerateFinancialReport = () => {
+    alert('📊 Detaylı finansal rapor oluşturuluyor (Simülasyon)');
   };
 
   return (
@@ -357,13 +455,20 @@ export default function ProductsPage() {
         <h3 className="card-header text-blue-900">🤖 Toplu Agent İşlemleri</h3>
 
         <div className="grid grid-cols-3 gap-4">
-          <button className="btn-primary bg-blue-600">
-            Tümünü Optimize Et
+          <button 
+            onClick={handleBulkOptimize}
+            disabled={loading}
+            className="btn-primary bg-blue-600 disabled:opacity-50">
+            {loading ? '⏳ Optimize Ediliyor...' : 'Tümünü Optimize Et'}
           </button>
-          <button className="btn-primary bg-green-600">
+          <button 
+            onClick={handleBulkImproveDescriptions}
+            className="btn-primary bg-green-600">
             Açıklamaları Iyileştir
           </button>
-          <button className="btn-primary bg-orange-600">
+          <button 
+            onClick={handleGenerateFinancialReport}
+            className="btn-primary bg-orange-600">
             Finansal Rapor Oluştur
           </button>
         </div>
