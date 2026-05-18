@@ -169,7 +169,7 @@ export default function AIChatbot() {
       {/* Chat Panel */}
       {open && (
         <div
-          className="fixed bottom-24 right-6 z-50 w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden"
+          className="fixed bottom-24 right-6 z-50 w-96 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 overflow-hidden"
           style={{ animation: 'chatSlideUp 0.3s ease-out', height: '500px' }}
         >
           {/* Header */}
@@ -191,7 +191,7 @@ export default function AIChatbot() {
                   className={`max-w-[80%] px-4 py-2 rounded-2xl text-sm whitespace-pre-wrap ${
                     msg.role === 'user'
                       ? 'bg-blue-600 text-white rounded-br-md'
-                      : 'bg-gray-100 text-gray-800 rounded-bl-md border border-gray-200'
+                      : 'bg-gray-100 dark:bg-slate-700/80 text-gray-800 dark:text-gray-100 rounded-bl-md border border-gray-200 dark:border-slate-650'
                   }`}
                 >
                   {msg.text}
@@ -200,27 +200,27 @@ export default function AIChatbot() {
             ))}
             {loading && (
               <div className="flex justify-start mb-3">
-                <div className="bg-gray-100 px-4 py-2 rounded-2xl rounded-bl-md border border-gray-200">
-                  <span className="text-gray-500 text-sm animate-pulse">Düşünüyorum...</span>
+                <div className="bg-gray-100 dark:bg-slate-700/80 px-4 py-2 rounded-2xl rounded-bl-md border border-gray-200 dark:border-slate-650">
+                  <span className="text-gray-500 dark:text-gray-400 text-sm animate-pulse">Düşünüyorum...</span>
                 </div>
               </div>
             )}
           </div>
 
           {/* Input */}
-          <div className="px-4 py-3 border-t bg-gray-50">
+          <div className="px-4 py-3 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
             <div className="flex gap-2">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                 placeholder="Sorunuzu yazın..."
-                className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:border-blue-500"
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-900 dark:text-white rounded-lg text-sm focus:outline-none focus:border-blue-500"
               />
               <button
                 onClick={handleSend}
                 disabled={loading || !input.trim()}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium disabled:opacity-50"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition text-sm font-medium disabled:opacity-50"
               >
                 Gönder
               </button>

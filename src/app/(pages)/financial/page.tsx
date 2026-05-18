@@ -67,8 +67,8 @@ export default function FinancialPage() {
             .sort((a, b) => a.profit - b.profit)
             .slice(0, 3);
 
-          if (profitable.length > 0) setProfitableProducts(profitable);
-          if (risk.length > 0) setLossProducts(risk);
+          setProfitableProducts(profitable);
+          setLossProducts(risk);
         }
       } catch (error) {
         console.error('Error fetching products for financial page:', error);
@@ -78,10 +78,21 @@ export default function FinancialPage() {
     fetchProducts();
   }, []);
 
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalContent, setModalContent] = useState('');
+  const [modalType, setModalType] = useState<'success' | 'info'>('success');
+
+  const showModal = (title: string, content: string, type: 'success' | 'info' = 'success') => {
+    setModalTitle(title);
+    setModalContent(content);
+    setModalType(type);
+    setModalOpen(true);
+  };
+
   const handlePricingOptimization = async () => {
     setLoading(true);
     try {
-      // "Screen Protector" id'sini bulmaya çalış, bulamazsak mock çalışır.
       const screenProtector = products.find(p => p.name.includes('Screen Protector') || p.name.includes('Screen'));
       if (screenProtector && typeof screenProtector.id === 'number') {
         await fetch('/api/actions/update-product', {
@@ -96,10 +107,9 @@ export default function FinancialPage() {
           })
         });
       }
-      alert(`✅ Fiyatlandırma Önerisi Uygulandı!\n\nRisk altındaki ürünlerin fiyatı optimize edildi ve veritabanına kaydedildi.`);
-      window.location.reload();
+      showModal('✅ Fiyatlandırma Önerisi Uygulandı!', 'Risk altındaki ürünlerin fiyatı optimize edildi ve veritabanına kaydedildi.', 'success');
     } catch (error) {
-      alert(`❌ Hata: ${String(error)}`);
+      showModal('❌ Hata', String(error), 'info');
     } finally {
       setLoading(false);
     }
@@ -118,14 +128,13 @@ export default function FinancialPage() {
             name: standProduct.name,
             basePrice: standProduct.current_price || standProduct.price,
             costPrice: standProduct.cost_price || standProduct.cost,
-            inventory: (standProduct.inventory || 0) + 50 // stoğu 50 arttır
+            inventory: (standProduct.inventory || 0) + 50
           })
         });
       }
-      alert(`✅ Sipariş Onaylandı ve Stok Eklendi!\n\nSistem stoku otomatik olarak güncelledi.`);
-      window.location.reload();
+      showModal('✅ Sipariş Onaylandı ve Stok Eklendi!', 'Sistem stoku otomatik olarak güncelledi.', 'success');
     } catch (error) {
-      alert(`❌ Hata: ${String(error)}`);
+      showModal('❌ Hata', String(error), 'info');
     } finally {
       setLoading(false);
     }
@@ -133,7 +142,7 @@ export default function FinancialPage() {
 
   const handleExportExcel = () => {
     if (products.length === 0) {
-      alert("Dışa aktarılacak veri bulunamadı.");
+      showModal("Uyarı", "Dışa aktarılacak veri bulunamadı.", "info");
       return;
     }
     
@@ -172,7 +181,7 @@ export default function FinancialPage() {
   };
 
   const handleDownloadPDF = () => {
-    if (products.length === 0) { alert('Veri yok'); return; }
+    if (products.length === 0) { showModal('Uyarı', 'Veri yok', 'info'); return; }
     
     const rev = products.reduce((s: number, p: any) => s + ((parseFloat(p.current_price) || parseFloat(p.base_price) || 0) * (p.inventory || 0)), 0);
     const cost = products.reduce((s: number, p: any) => s + ((parseFloat(p.cost_price) || 0) * (p.inventory || 0)), 0);
@@ -198,7 +207,7 @@ export default function FinancialPage() {
   };
 
   const handleSendEmail = () => {
-    if (products.length === 0) { alert('Veri yok'); return; }
+    if (products.length === 0) { showModal('Uyarı', 'Veri yok', 'info'); return; }
     
     const rev = products.reduce((s: number, p: any) => s + ((parseFloat(p.current_price) || parseFloat(p.base_price) || 0) * (p.inventory || 0)), 0);
     const cost = products.reduce((s: number, p: any) => s + ((parseFloat(p.cost_price) || 0) * (p.inventory || 0)), 0);
@@ -227,9 +236,9 @@ export default function FinancialPage() {
         body: JSON.stringify({ action: 'ASSESS_COMPETITOR' }),
       });
       const data = await response.json();
-      alert(`📊 Kar Maksimizasyonu Analizi\n\n${data.response?.analysis || 'Rakip analizi tamamlandı'}`);
+      showModal('📊 Kar Maksimizasyonu Analizi', data.response?.analysis || 'Rakip analizi tamamlandı', 'info');
     } catch (error) {
-      alert(`❌ Hata: ${String(error)}`);
+      showModal('❌ Hata', String(error), 'info');
     } finally {
       setLoading(false);
     }
@@ -244,9 +253,9 @@ export default function FinancialPage() {
         body: JSON.stringify({ action: 'GENERATE_REPORT' }),
       });
       const data = await response.json();
-      alert(`📋 Keskinlik Analizi\n\n${data.response?.analysis || 'Risk analizi tamamlandı'}`);
+      showModal('📋 Keskinlik Analizi', data.response?.analysis || 'Risk analizi tamamlandı', 'info');
     } catch (error) {
-      alert(`❌ Hata: ${String(error)}`);
+      showModal('❌ Hata', String(error), 'info');
     } finally {
       setLoading(false);
     }
@@ -254,10 +263,43 @@ export default function FinancialPage() {
 
   return (
     <div className="space-y-8">
+      {/* Modal Overlay */}
+      {modalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+          onClick={() => setModalOpen(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+            style={{ animation: 'fadeIn 0.25s ease-out' }}
+          >
+            {/* Modal Header */}
+            <div className={`px-6 py-4 ${modalType === 'success' ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`}>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-white">{modalTitle}</h3>
+                <button onClick={() => setModalOpen(false)} className="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+              </div>
+            </div>
+            {/* Modal Body */}
+            <div className="px-6 py-5 max-h-96 overflow-y-auto">
+              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed text-sm">{modalContent}</p>
+            </div>
+            {/* Modal Footer */}
+            <div className="px-6 py-4 bg-gray-50 dark:bg-slate-900/50 flex justify-end">
+              <button onClick={() => setModalOpen(false)} className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm">
+                Tamam
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Finansal Durum</h1>
-        <p className="text-gray-600 mt-2">Gerçek zamanlı kâr/zarar analizi ve AI önerileri</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Finansal Durum</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-2">Gerçek zamanlı kâr/zarar analizi ve AI önerileri</p>
       </div>
 
       {/* Key Financial Metrics */}
@@ -267,7 +309,7 @@ export default function FinancialPage() {
           <div className="metric-value">
             {products.length > 0 ? `₺${products.reduce((s, p) => s + ((parseFloat(p.current_price) || parseFloat(p.base_price) || 0) * (p.inventory || 0)), 0).toLocaleString('tr-TR', {maximumFractionDigits: 0})}` : 'Yükleniyor...'}
           </div>
-          <p className="text-xs text-blue-600 mt-1">Bu ay</p>
+          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Bu ay</p>
         </div>
 
         <div className="metric-box">
@@ -275,7 +317,7 @@ export default function FinancialPage() {
           <div className="metric-value">
             {products.length > 0 ? `₺${products.reduce((s, p) => s + ((parseFloat(p.cost_price) || 0) * (p.inventory || 0)), 0).toLocaleString('tr-TR', {maximumFractionDigits: 0})}` : 'Yükleniyor...'}
           </div>
-          <p className="text-xs text-blue-600 mt-1">Ürün maliyeti</p>
+          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Ürün maliyeti</p>
         </div>
 
         <div className="metric-box">
@@ -287,7 +329,7 @@ export default function FinancialPage() {
               return `₺${(rev - cost).toLocaleString('tr-TR', {maximumFractionDigits: 0})}`;
             })() : 'Yükleniyor...'}
           </div>
-          <p className="text-xs text-green-600 mt-1">↑ Canlı hesaplama</p>
+          <p className="text-xs text-green-600 dark:text-green-400 mt-1">↑ Canlı hesaplama</p>
         </div>
 
         <div className="metric-box">
@@ -302,7 +344,7 @@ export default function FinancialPage() {
               return `%${avg.toFixed(1)}`;
             })() : 'Yükleniyor...'}
           </div>
-          <p className="text-xs text-blue-600 mt-1">Sektör ort. %20</p>
+          <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Sektör ort. %20</p>
         </div>
 
         <div className="metric-box">
@@ -315,7 +357,7 @@ export default function FinancialPage() {
               return `%${roi.toFixed(0)}`;
             })() : 'Yükleniyor...'}
           </div>
-          <p className="text-xs text-green-600 mt-1">{products.length > 0 ? (() => {
+          <p className="text-xs text-green-600 dark:text-green-400 mt-1">{products.length > 0 ? (() => {
             const rev = products.reduce((s, p) => s + ((parseFloat(p.current_price) || parseFloat(p.base_price) || 0) * (p.inventory || 0)), 0);
             const cost = products.reduce((s, p) => s + ((parseFloat(p.cost_price) || 0) * (p.inventory || 0)), 0);
             const roi = cost > 0 ? ((rev - cost) / cost * 100) : 0;
@@ -328,7 +370,7 @@ export default function FinancialPage() {
       <div className="card">
         <div className="card-header">📈 Aylık Gelir Trendi</div>
 
-        <div className="h-64 flex items-end justify-around p-6 bg-gray-50 rounded-lg">
+        <div className="h-64 flex items-end justify-around p-6 bg-gray-50 dark:bg-slate-800 rounded-lg">
           {monthlyMetrics.length > 0 ? monthlyMetrics.slice().reverse().map((m, i) => {
             const monthNames = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
             const maxRevenue = Math.max(...monthlyMetrics.map(mm => mm.total_revenue || 0));
@@ -340,7 +382,7 @@ export default function FinancialPage() {
                   className="w-10 bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg transition-all duration-500"
                   style={{ height: `${barHeight}px` }}
                 />
-                <span className="text-xs text-gray-600">{monthNames[(m.month || 1) - 1]}</span>
+                <span className="text-xs text-gray-600 dark:text-gray-400">{monthNames[(m.month || 1) - 1]}</span>
               </div>
             );
           }) : [5, 5.5, 5.2, 5.8, 6.2].map((value, i) => (
@@ -356,20 +398,20 @@ export default function FinancialPage() {
 
         <div className="mt-4 flex justify-around text-sm">
           <div>
-            <p className="text-gray-600">Toplam Gelir (Ay)</p>
-            <p className="text-lg font-bold text-blue-600">
+            <p className="text-gray-600 dark:text-gray-400">Toplam Gelir (Ay)</p>
+            <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
               {monthlyMetrics.length > 0 ? `₺${Number(monthlyMetrics[0]?.total_revenue || 0).toLocaleString('tr-TR')}` : 'Yükleniyor...'}
             </p>
           </div>
           <div>
-            <p className="text-gray-600">Toplam Kar (Ay)</p>
-            <p className="text-lg font-bold text-green-600">
+            <p className="text-gray-600 dark:text-gray-400">Toplam Kar (Ay)</p>
+            <p className="text-lg font-bold text-green-600 dark:text-green-400">
               {monthlyMetrics.length > 0 ? `₺${Number(monthlyMetrics[0]?.total_profit || 0).toLocaleString('tr-TR')}` : 'Yükleniyor...'}
             </p>
           </div>
           <div>
-            <p className="text-gray-600">Marj</p>
-            <p className="text-lg font-bold text-blue-600">
+            <p className="text-gray-600 dark:text-gray-400">Marj</p>
+            <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
               {monthlyMetrics.length > 0 ? `%${Number(monthlyMetrics[0]?.profit_margin || 0).toFixed(1)}` : '...'}
             </p>
           </div>
@@ -384,24 +426,16 @@ export default function FinancialPage() {
 
           <div className="space-y-3">
             {profitableProducts.length > 0 ? profitableProducts.map((product, i) => (
-              <div key={i} className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
+              <div key={i} className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                 <div>
-                  <p className="font-medium text-gray-900">{product.name}</p>
-                  <p className="text-xs text-gray-600">Marj: {Number(product.margin).toFixed(1)}%</p>
+                  <p className="font-medium text-green-900 dark:text-green-300">{product.name}</p>
+                  <p className="text-xs text-gray-700 dark:text-gray-400">Marj: {Number(product.margin).toFixed(1)}%</p>
                 </div>
-                <p className="font-bold text-green-600">₺{Number(product.profit).toLocaleString('tr-TR')}</p>
+                <p className="font-bold text-green-900 dark:text-green-400">₺{Number(product.profit).toLocaleString('tr-TR')}</p>
               </div>
-            )) : [
-              { name: 'Yükleniyor...', profit: 0, margin: 0 }
-            ].map((product, i) => (
-              <div key={i} className="flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200">
-                <div>
-                  <p className="font-medium text-gray-900">{product.name}</p>
-                  <p className="text-xs text-gray-600">Marj: {Number(product.margin).toFixed(1)}%</p>
-                </div>
-                <p className="font-bold text-green-600">₺{Number(product.profit).toLocaleString('tr-TR')}</p>
-              </div>
-            ))}
+            )) : (
+              <div className="p-3 text-sm text-gray-700 dark:text-gray-400">Henüz kârlı ürün bulunmuyor.</div>
+            )}
           </div>
         </div>
 
@@ -411,69 +445,61 @@ export default function FinancialPage() {
 
           <div className="space-y-3">
             {lossProducts.length > 0 ? lossProducts.map((product, i) => (
-              <div key={i} className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200">
+              <div key={i} className="flex justify-between items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                 <div>
-                  <p className="font-medium text-gray-900">{product.name}</p>
-                  <p className="text-xs text-gray-600">Marj: {Number(product.margin).toFixed(1)}%</p>
+                  <p className="font-medium text-red-800 dark:text-red-300">{product.name}</p>
+                  <p className="text-xs text-gray-700 dark:text-gray-400">Marj: {Number(product.margin).toFixed(1)}%</p>
                 </div>
-                <p className="font-bold text-red-600">₺{Number(product.profit).toLocaleString('tr-TR')}</p>
+                <p className="font-bold text-red-800 dark:text-red-400">₺{Number(product.profit).toLocaleString('tr-TR')}</p>
               </div>
-            )) : [
-              { name: 'Yükleniyor...', profit: 0, margin: 0 }
-            ].map((product, i) => (
-              <div key={i} className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200">
-                <div>
-                  <p className="font-medium text-gray-900">{product.name}</p>
-                  <p className="text-xs text-gray-600">Marj: {Number(product.margin).toFixed(1)}%</p>
-                </div>
-                <p className="font-bold text-red-600">₺{Number(product.profit).toLocaleString('tr-TR')}</p>
-              </div>
-            ))}
+            )) : (
+              <div className="p-3 text-sm text-gray-700 dark:text-gray-400">Risk altında ürün yok — harika!</div>
+            )}
           </div>
         </div>
       </div>
 
       {/* AI Financial Insights */}
-      <div className="card bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300">
-        <div className="card-header text-blue-900">🧠 AI Finansal İçgörüler</div>
+      <div className="card bg-white dark:bg-slate-900 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20 border-2 border-blue-300 dark:border-blue-900/40">
+        <div className="card-header text-adaptive">🧠 AI Finansal İçgörüler</div>
 
         <div className="grid grid-cols-2 gap-6">
-          <div className="p-4 bg-white rounded-lg border border-blue-200">
-            <h4 className="font-semibold text-blue-900 mb-2">Fiyatlandırma Önerisi</h4>
-            <p className="text-sm text-gray-700 mb-3">
-              Screen Protector fiyatını ₺45'ten ₺55'e yükselterek marjı %10'dan %22'ye çıkarabili rsiniz.
+          <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-blue-200 dark:border-blue-800">
+            <h4 className="font-semibold text-adaptive mb-2">Fiyatlandırma Önerisi</h4>
+            <p className="text-sm text-gray-800 dark:text-gray-300 mb-3">
+              Screen Protector fiyatını ₺45&apos;ten ₺55&apos;e yükselterek marjı %10&apos;dan %22&apos;ye çıkarabilirsiniz.
             </p>
-            <button onClick={handlePricingOptimization} disabled={loading} className="text-sm font-semibold text-blue-600 hover:text-blue-700 disabled:opacity-50">
+            <button onClick={handlePricingOptimization} disabled={loading} className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50">
               {loading ? '⏳ İşleniyor...' : 'Uygula →'}
             </button>
           </div>
 
-          <div className="p-4 bg-white rounded-lg border border-blue-200">
-            <h4 className="font-semibold text-blue-900 mb-2">Stok Yönetimi</h4>
-            <p className="text-sm text-gray-700 mb-3">
+          <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-blue-200 dark:border-blue-800">
+            <h4 className="font-semibold text-adaptive mb-2">Stok Yönetimi</h4>
+            <p className="text-sm text-gray-800 dark:text-gray-300 mb-3">
               Phone Stand stoku bitme riski taşıyor. Talep tahminine göre 50 adet daha sipariş öneririz.
             </p>
-            <button onClick={handleOrderPlacement} disabled={loading} className="text-sm font-semibold text-blue-600 hover:text-blue-700 disabled:opacity-50">
+            <button onClick={handleOrderPlacement} disabled={loading} className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50">
               {loading ? '⏳ İşleniyor...' : 'Sipariş Ver →'}
             </button>
           </div>
 
-          <div className="p-4 bg-white rounded-lg border border-blue-200">
-            <h4 className="font-semibold text-blue-900 mb-2">Kar Maksimizasyonu</h4>
-            <p className="text-sm text-gray-700 mb-3">
+          <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-blue-200 dark:border-blue-800">
+            <h4 className="font-semibold text-adaptive mb-2">Kar Maksimizasyonu</h4>
+            <p className="text-sm text-gray-800 dark:text-gray-300 mb-3">
               Wireless Headphones daha agresif pazarlamaya koyulursa satışlar %30 artabilir.
             </p>
-            <button onClick={handleProfitMaximization} disabled={loading} className="text-sm font-semibold text-blue-600 hover:text-blue-700 disabled:opacity-50">
+            <button onClick={handleProfitMaximization} disabled={loading} className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50">
               {loading ? '⏳ İşleniyor...' : 'Detaylar →'}
             </button>
           </div>
 
-          <div className="p-4 bg-white rounded-lg border border-blue-200">
-            <h4 className="font-semibold text-blue-900 mb-2">Keskinlik Analizi</h4>
-            <p className="text-sm text-gray-700 mb-3">
-              Son 7 günde USD volatilitesi yükseldi. Fiyatları ABD'den ithal ürünler için kontrol edin.
+          <div className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-blue-200 dark:border-blue-800">
+            <h4 className="font-semibold text-adaptive mb-2">Keskinlik Analizi</h4>
+            <p className="text-sm text-gray-800 dark:text-gray-300 mb-3">
+              Son 7 günde USD volatilitesi yükseldi. Fiyatları ABD&apos;den ithal ürünler için kontrol edin.
             </p>
-            <button onClick={handleRiskAnalysis} disabled={loading} className="text-sm font-semibold text-blue-600 hover:text-blue-700 disabled:opacity-50">
+            <button onClick={handleRiskAnalysis} disabled={loading} className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 disabled:opacity-50">
               {loading ? '⏳ İşleniyor...' : 'Analiz →'}
             </button>
           </div>
@@ -543,7 +569,7 @@ export default function FinancialPage() {
       {/* Export Reports */}
       <div className="flex gap-4">
         <button className="btn-primary" onClick={handleDownloadPDF}>📊 Rapor İndir (PDF)</button>
-        <button className="btn-secondary" onClick={handleExportExcel}>📤 Excel'e Aktar</button>
+        <button className="btn-secondary" onClick={handleExportExcel}>📤 Excel&apos;e Aktar</button>
         <button className="btn-success" onClick={handleSendEmail}>📧 E-posta Gönder</button>
       </div>
     </div>

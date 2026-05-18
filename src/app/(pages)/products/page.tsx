@@ -444,12 +444,12 @@ export default function ProductsPage() {
       {/* Report Modal */}
       {reportModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
+          className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
           style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
           onClick={() => setReportModalOpen(false)}
         >
           <div
-            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden"
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 overflow-hidden border border-gray-200 dark:border-slate-700"
             onClick={(e) => e.stopPropagation()}
             style={{ animation: 'fadeInReport 0.3s ease-out' }}
           >
@@ -461,17 +461,17 @@ export default function ProductsPage() {
               </div>
             </div>
             {/* Modal Body */}
-            <div className="px-6 py-5 max-h-[60vh] overflow-y-auto bg-gray-50">
-              <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono leading-relaxed">{reportContent}</pre>
+            <div className="px-6 py-5 max-h-[60vh] overflow-y-auto bg-gray-50 dark:bg-slate-900">
+              <pre className="text-sm text-gray-800 dark:text-gray-100 whitespace-pre-wrap font-mono leading-relaxed">{reportContent}</pre>
             </div>
             {/* Modal Footer */}
-            <div className="px-6 py-4 bg-white border-t flex justify-between items-center">
-              <p className="text-xs text-gray-500">AI Commerce Agent tarafından oluşturuldu</p>
+            <div className="px-6 py-4 bg-white dark:bg-slate-800 border-t border-gray-200 dark:border-slate-700 flex justify-between items-center">
+              <p className="text-xs text-gray-500 dark:text-gray-400">AI Commerce Agent tarafından oluşturuldu</p>
               <div className="flex gap-3">
-                <button onClick={handleDownloadPDF} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium text-sm">
+                <button onClick={handleDownloadPDF} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition font-medium text-sm">
                   📥 PDF İndir
                 </button>
-                <button onClick={() => setReportModalOpen(false)} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm">
+                <button onClick={() => setReportModalOpen(false)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-medium text-sm">
                   Kapat
                 </button>
               </div>
@@ -485,265 +485,275 @@ export default function ProductsPage() {
           to { opacity: 1; transform: scale(1) translateY(0); }
         }
       `}</style>
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Ürün Yönetimi</h1>
-          <p className="text-gray-600 mt-2">AI Agent tarafından optimize edilen ürünler</p>
-        </div>
-        <button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="btn-primary"
-        >
-          + Yeni Ürün Ekle
-        </button>
-      </div>
 
-      {/* Add Product Form */}
-      {showAddForm && (
-        <div className="card border-2 border-blue-200">
-          <h3 className="card-header">Yeni Ürün Ekle</h3>
-
-          <form className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Ürün Adı</label>
-              <input
-                type="text"
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                placeholder="Örn: Wireless Headphones"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
-              <select className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500">
-                <option>Elektronik</option>
-                <option>Aksesuar</option>
-                <option>Diğer</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Maliyet (₺)</label>
-              <input
-                type="number"
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                placeholder="200"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Başlangıç Fiyatı (₺)</label>
-              <input
-                type="number"
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                placeholder="450"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Stok</label>
-              <input
-                type="number"
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                placeholder="50"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Açıklama</label>
-              <textarea
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
-                placeholder="Ürün açıklaması..."
-                rows={3}
-              />
-            </div>
-
-            <div className="col-span-2 flex gap-4">
-              <button type="submit" className="btn-primary flex-1">
-                Ürün Ekle
-              </button>
-              <button
-                type="button"
-                className="btn-secondary flex-1"
-                onClick={() => setShowAddForm(false)}
-              >
-                İptal
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* Products Table */}
-      <div className="card">
-        <div className="card-header">Ürün Listesi ({products.length})</div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="border-b-2 border-gray-200">
-              <tr className="text-gray-600">
-                <th className="text-left py-3 px-4">Ürün Adı</th>
-                <th className="text-right py-3 px-4">Fiyat</th>
-                <th className="text-right py-3 px-4">Rakipler</th>
-                <th className="text-right py-3 px-4">Kar %</th>
-                <th className="text-right py-3 px-4">Stok</th>
-                <th className="text-left py-3 px-4">Agent Önerisi</th>
-                <th className="text-center py-3 px-4">İşlemler</th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y">
-              {products.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-50 transition">
-                  <td className="py-4 px-4 font-medium">{product.name}</td>
-
-                  <td className="text-right py-4 px-4">
-                    <span className="font-semibold">₺{product.price}</span>
-                  </td>
-
-                  <td className="text-right py-4 px-4 text-gray-600">₺{product.competitors}</td>
-
-                  <td className="text-right py-4 px-4">
-                    <span
-                      className={`font-semibold ${
-                        product.margin < 0 ? 'text-red-600' : product.margin > 50 ? 'text-green-600' : 'text-blue-600'
-                      }`}
-                    >
-                      {product.margin.toFixed(1)}%
-                    </span>
-                  </td>
-
-                  <td className="text-right py-4 px-4">
-                    <span
-                      className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                        product.inventory < 10
-                          ? 'bg-red-100 text-red-800'
-                          : product.inventory < 50
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-green-100 text-green-800'
-                      }`}
-                    >
-                      {product.inventory}
-                    </span>
-                  </td>
-
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-700">{product.recommendation}</span>
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        {(product.confidence * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                  </td>
-
-                  <td className="text-center py-4 px-4">
-                    <button 
-                      onClick={() => handleEditClick(product)}
-                      className="text-blue-600 hover:text-blue-700 font-medium text-sm">
-                      Düzenle
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Bulk Actions */}
-      <div className="card bg-blue-50 border-2 border-blue-200">
-        <h3 className="card-header text-blue-900">🤖 Toplu Agent İşlemleri</h3>
-
-        <div className="grid grid-cols-3 gap-4">
-          <button 
-            onClick={handleBulkOptimize}
-            disabled={loading}
-            className="btn-primary bg-blue-600 disabled:opacity-50">
-            {loading ? '⏳ Optimize Ediliyor...' : 'Tümünü Optimize Et'}
-          </button>
-          <button 
-            onClick={handleBulkImproveDescriptions}
-            className="btn-primary bg-green-600">
-            Açıklamaları Iyileştir
-          </button>
-          <button 
-            onClick={handleGenerateFinancialReport}
-            className="btn-primary bg-orange-600">
-            Finansal Rapor Oluştur
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Ürün Yönetimi</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">AI Agent tarafından optimize edilen ürünler</p>
+          </div>
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-500/20 transition-all font-semibold text-sm"
+          >
+            {showAddForm ? '✕ Formu Kapat' : '+ Yeni Ürün Ekle'}
           </button>
         </div>
-      </div>
 
-      {/* Edit Modal */}
-      {editingProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full mx-4">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">Ürün Düzenle</h3>
+        {/* Add Product Form */}
+        {showAddForm && (
+          <div className="card border-2 border-blue-200 dark:border-blue-900 bg-white dark:bg-slate-800">
+            <h3 className="card-header border-b border-gray-100 dark:border-slate-700 pb-3">Yeni Ürün Ekle</h3>
 
-            <div className="space-y-4">
+            <form className="grid grid-cols-2 gap-6 mt-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Ürün Adı</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ürün Adı</label>
                 <input
                   type="text"
-                  value={editFormData.name}
-                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-650 bg-white dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
+                  placeholder="Örn: Wireless Headphones"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Fiyat (₺)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategori</label>
+                <select className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-650 bg-white dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-blue-500 transition-colors">
+                  <option>Elektronik</option>
+                  <option>Aksesuar</option>
+                  <option>Diğer</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Maliyet (₺)</label>
                 <input
                   type="number"
-                  value={editFormData.price}
-                  onChange={(e) => setEditFormData({ ...editFormData, price: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-650 bg-white dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
+                  placeholder="200"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Maliyet (₺)</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Başlangıç Fiyatı (₺)</label>
                 <input
                   type="number"
-                  value={editFormData.costPrice}
-                  onChange={(e) => setEditFormData({ ...editFormData, costPrice: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-650 bg-white dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
+                  placeholder="450"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Stok</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Stok</label>
                 <input
                   type="number"
-                  value={editFormData.inventory}
-                  onChange={(e) => setEditFormData({ ...editFormData, inventory: e.target.value })}
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-650 bg-white dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
+                  placeholder="50"
                 />
               </div>
-            </div>
 
-            <div className="flex gap-3 mt-8">
-              <button
-                onClick={handleEditSave}
-                disabled={loading}
-                className="flex-1 btn-primary bg-blue-600 disabled:opacity-50"
-              >
-                {loading ? '⏳ Kaydediliyor...' : '✓ Kaydet'}
-              </button>
-              <button
-                onClick={() => setEditingProduct(null)}
-                disabled={loading}
-                className="flex-1 btn-secondary"
-              >
-                İptal
-              </button>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Açıklama</label>
+                <textarea
+                  className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-650 bg-white dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-blue-500 transition-colors"
+                  placeholder="Ürün açıklaması..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="col-span-2 flex gap-4 mt-2">
+                <button type="submit" className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold flex-1 transition">
+                  Ürün Ekle
+                </button>
+                <button
+                  type="button"
+                  className="px-5 py-2.5 btn-secondary rounded-xl font-semibold flex-1 transition"
+                  onClick={() => setShowAddForm(false)}
+                >
+                  İptal
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* Products Table */}
+        <div className="card">
+          <div className="card-header border-b border-gray-100 dark:border-slate-700 pb-3">Ürün Listesi ({products.length})</div>
+
+          <div className="overflow-x-auto mt-4">
+            <table className="w-full text-sm">
+              <thead className="border-b border-gray-200 dark:border-slate-700">
+                <tr className="text-gray-500 dark:text-gray-400">
+                  <th className="text-left py-3.5 px-4 font-semibold">Ürün Adı</th>
+                  <th className="text-right py-3.5 px-4 font-semibold">Fiyat</th>
+                  <th className="text-right py-3.5 px-4 font-semibold">Rakipler</th>
+                  <th className="text-right py-3.5 px-4 font-semibold">Kar %</th>
+                  <th className="text-right py-3.5 px-4 font-semibold">Stok</th>
+                  <th className="text-left py-3.5 px-4 font-semibold">Agent Önerisi</th>
+                  <th className="text-center py-3.5 px-4 font-semibold">İşlemler</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-gray-100 dark:divide-slate-700/60">
+                {products.map((product) => (
+                  <tr key={product.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-750/30 transition duration-150">
+                    <td className="py-4 px-4 font-medium text-gray-900 dark:text-gray-200">{product.name}</td>
+
+                    <td className="text-right py-4 px-4">
+                      <span className="font-bold text-gray-900 dark:text-white">₺{product.price}</span>
+                    </td>
+
+                    <td className="text-right py-4 px-4 text-gray-600 dark:text-gray-400 font-medium">₺{product.competitors}</td>
+
+                    <td className="text-right py-4 px-4 font-semibold">
+                      <span
+                        className={
+                          product.margin < 0 
+                            ? 'text-red-600 dark:text-red-400' 
+                            : product.margin > 40 
+                            ? 'text-emerald-600 dark:text-emerald-400' 
+                            : 'text-blue-600 dark:text-blue-400'
+                        }
+                      >
+                        {product.margin.toFixed(1)}%
+                      </span>
+                    </td>
+
+                    <td className="text-right py-4 px-4">
+                      <span
+                        className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                          product.inventory < 5
+                            ? 'bg-red-100 text-red-800 dark:bg-red-950/30 dark:text-red-300'
+                            : product.inventory < 20
+                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-300'
+                            : 'bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-300'
+                        }`}
+                      >
+                        {product.inventory}
+                      </span>
+                    </td>
+
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">{product.recommendation}</span>
+                        <span className="text-xs bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded font-bold">
+                          {(product.confidence * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                    </td>
+
+                    <td className="text-center py-4 px-4">
+                      <button 
+                        onClick={() => handleEditClick(product)}
+                        className="text-blue-600 dark:text-blue-450 hover:text-blue-700 dark:hover:text-blue-350 font-bold text-sm bg-blue-50 dark:bg-blue-950/30 px-3 py-1.5 rounded-lg transition"
+                      >
+                        Düzenle
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
-      )}
-    </div>
+
+        {/* Bulk Actions */}
+        <div className="card bg-blue-50/50 dark:bg-slate-800/50 border border-blue-200 dark:border-slate-700">
+          <h3 className="card-header text-blue-900 dark:text-blue-400">🤖 Toplu Agent İşlemleri</h3>
+
+          <div className="grid grid-cols-3 gap-6 mt-4">
+            <button 
+              onClick={handleBulkOptimize}
+              disabled={loading}
+              className="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition disabled:opacity-50"
+            >
+              {loading ? '⏳ Optimize Ediliyor...' : 'Tümünü Optimize Et'}
+            </button>
+            <button 
+              onClick={handleBulkImproveDescriptions}
+              className="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/30 transition"
+            >
+              Açıklamaları İyileştir
+            </button>
+            <button 
+              onClick={handleGenerateFinancialReport}
+              className="px-5 py-3 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-bold shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 transition"
+            >
+              Finansal Rapor Oluştur
+            </button>
+          </div>
+        </div>
+
+        {/* Edit Modal */}
+        {editingProduct && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border border-gray-100 dark:border-slate-700"
+              style={{ animation: 'fadeInReport 0.25s ease-out' }}>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Ürün Düzenle</h3>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ürün Adı</label>
+                  <input
+                    type="text"
+                    value={editFormData.name}
+                    onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-650 bg-white dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-blue-500 transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Fiyat (₺)</label>
+                  <input
+                    type="number"
+                    value={editFormData.price}
+                    onChange={(e) => setEditFormData({ ...editFormData, price: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-650 bg-white dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-blue-500 transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Maliyet (₺)</label>
+                  <input
+                    type="number"
+                    value={editFormData.costPrice}
+                    onChange={(e) => setEditFormData({ ...editFormData, costPrice: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-650 bg-white dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-blue-500 transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Stok</label>
+                  <input
+                    type="number"
+                    value={editFormData.inventory}
+                    onChange={(e) => setEditFormData({ ...editFormData, inventory: e.target.value })}
+                    className="w-full px-4 py-2.5 border border-gray-300 dark:border-slate-650 bg-white dark:bg-slate-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-blue-500 transition"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-4 mt-8">
+                <button
+                  onClick={handleEditSave}
+                  disabled={loading}
+                  className="flex-1 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/10 hover:shadow-xl transition disabled:opacity-50"
+                >
+                  {loading ? '⏳ Kaydediliyor...' : '✓ Kaydet'}
+                </button>
+                <button
+                  onClick={() => setEditingProduct(null)}
+                  disabled={loading}
+                  className="flex-1 px-5 py-2.5 btn-secondary rounded-xl font-bold transition"
+                >
+                  İptal
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </>
   );
 }

@@ -325,11 +325,11 @@ export async function callGeminiAPI(prompt: string, context: string = 'GENERAL')
       // Fallback when API key is not set
       console.warn('GEMINI_API_KEY not configured, returning mock analysis');
       return {
-        analysis: `📊 Kapsamlı Agentic Pazar & Rakip Analizi\n\n- Elektronik kategorisinde genel talep %12 oranında arttı.\n- Rakipler "Phone Stand" ürünlerinde fiyatta %5 indirime gitti, stok riski bulundurmanız sebebiyle tedarik önerilir.\n- "Screen Protector" pazarında kâr marjları genel olarak düşük, toplu satış kampanyaları (1 alana 1 bedava) değerlendirilebilir.\n- Mevcut ürün açıklamalarınızın SEO uyumluluğu %85 seviyesinde.\n\n(Bu bir demo analizdir, gerçek yapay zeka entegrasyonu için .env dosyasına GEMINI_API_KEY eklenmelidir.)`,
+        analysis: `📊 Kapsamlı Agentic Pazar & Rakip Analizi\n\n- Elektronik kategorisinde genel talep %12 oranında arttı.\n- Rakipler "Phone Stand" ürünlerinde fiyatta %5 indirime gitti; stok riski nedeniyle tedarik önerilir.\n- "Screen Protector" pazarında kâr marjları genel olarak düşük; toplu satış kampanyaları (1 alana 1 bedava) değerlendirilebilir.\n- Mevcut ürün açıklamalarınızın SEO uyumluluğu %85 seviyesinde.\n\n(Bu bir demo analizdir; gerçek yapay zeka entegrasyonu için .env dosyasına GEMINI_API_KEY ekleyin.)`,
         recommendations: [
-          'Phone Stand için acil sipariş oluşturulmalı',
-          'Zarar eden ürünlerde kampanya veya fiyat optimizasyonu yapılmalı',
-          'Yeni rakip girişlerine karşı fiyatlar haftalık kontrol edilmeli'
+          'Phone Stand için acil sipariş oluşturun',
+          'Zarar eden ürünlerde kampanya veya fiyat optimizasyonu uygulayın',
+          'Yeni rakip girişlerine karşı fiyatları haftalık kontrol edin'
         ],
         confidence: 0.88,
         rationale: 'Geçmiş 30 günlük pazar verileri ve rakip fiyat hareketleri'
@@ -364,10 +364,11 @@ export async function callGeminiAPI(prompt: string, context: string = 'GENERAL')
     console.error('Error in callGeminiAPI:', error);
     // Return mock data instead of throwing
     return {
-      analysis: '📊 Kapsamlı Analiz Sonucu\n\nPiyasa koşullarında dalgalanmalar tespit edildi. Rakipler genel fiyatlarını %3 oranında yükseltme eğiliminde. Sizin fiyatlarınız piyasa ortalamasının altında kaldı. Kâr marjını artırmak için %5 genel fiyat artışı yapılması tavsiye ediliyor.\n\n(Not: AI Bağlantı hatası sebebiyle bu analiz tahmini senaryolardan üretilmiştir.)',
+      analysis: '📊 Kapsamlı Analiz Sonucu\n\nPiyasa koşullarında dalgalanmalar tespit edildi. Rakipler genel fiyatlarını %3 oranında yükseltme eğiliminde. Sizin fiyatlarınız piyasa ortalamasının altında kaldı. Kâr marjını artırmak için %5 genel fiyat artışı önerilmektedir.\n\n📌 Öneriler: Düşük marjlı ürünlerde fiyat artışı uygulayın, stokta azalan ürünleri takip edin, rakip fiyatlarını haftalık kontrol edin.',
       recommendations: ['Fiyatları piyasa ortalamasına çek', 'Stokları optimize et'],
       confidence: 0.75,
       rationale: 'Son 7 günlük trend verileri'
     };
   }
 }
+

@@ -131,17 +131,17 @@ export default function NotificationBell() {
   };
 
   const bgColor: Record<string, string> = {
-    danger: 'bg-red-50 border-red-200',
-    warning: 'bg-yellow-50 border-yellow-200',
-    info: 'bg-blue-50 border-blue-200',
-    success: 'bg-green-50 border-green-200',
+    danger: 'bg-red-50 border-red-200 dark:bg-red-950/20 dark:border-red-900/50',
+    warning: 'bg-yellow-50 border-yellow-200 dark:bg-yellow-950/20 dark:border-yellow-900/50',
+    info: 'bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900/50',
+    success: 'bg-green-50 border-green-200 dark:bg-green-950/20 dark:border-green-900/50',
   };
 
   return (
     <div ref={ref} className="relative">
       <button
         onClick={() => { setOpen(!open); }}
-        className="relative p-2 text-gray-600 hover:text-blue-600 hover:bg-gray-100 rounded-full transition"
+        className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full transition"
       >
         <span className="text-xl">🔔</span>
         {unreadCount > 0 && (
@@ -152,7 +152,7 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-12 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 overflow-hidden"
+        <div className="absolute right-0 top-12 w-96 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-gray-200 dark:border-slate-700 z-50 overflow-hidden"
           style={{ animation: 'slideDown 0.2s ease-out' }}>
           <div className="px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 flex justify-between items-center">
             <h4 className="text-white font-bold text-sm">Bildirimler ({notifications.length})</h4>
@@ -172,7 +172,7 @@ export default function NotificationBell() {
                 className={`px-4 py-3 border-b border-l-4 ${bgColor[n.type]} ${n.read ? 'opacity-60' : ''} hover:opacity-100 transition`}
               >
               <div className="flex justify-between items-start">
-                  <p className="font-semibold text-sm text-gray-900">{n.title}</p>
+                  <p className="font-semibold text-sm text-gray-900 dark:text-white">{n.title}</p>
                   <div className="flex items-center gap-2 ml-2">
                     <span className="text-xs text-gray-500 whitespace-nowrap">{n.time}</span>
                     <button
@@ -184,7 +184,7 @@ export default function NotificationBell() {
                     </button>
                   </div>
                 </div>
-                <p className="text-xs text-gray-700 mt-1">{n.message}</p>
+                <p className="text-xs text-gray-700 dark:text-gray-300 mt-1">{n.message}</p>
               </div>
             ))}
           </div>
