@@ -2,6 +2,8 @@
 
 **Hackathon 26 Katılımı** | E-ticaret & Finans Odaklı Agentic AI Çözümü
 
+🚀 **[Canlı Demo Linki](https://ai-commerce-agent.vercel.app)** *(Kendi Vercel URL'niz ile güncelleyebilirsiniz)*
+
 ## 📋 Proje Tanımı
 
 E-ticaret satıcılarının ürün fiyatlarını **otomatik olarak** pazar ve rakip analizine göre güncelleyen, kâr/zarar durumunu hesaplayan ve müşteri geri bildirimlerine göre ürün açıklamalarını optimize eden **otonom yapay zeka asistanı**.

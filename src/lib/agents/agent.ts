@@ -10,7 +10,7 @@ import {
   analyzeMarketTrends,
   improveProductDescription,
   analyzeFinancialMetrics,
-} from './client';
+} from '../gemini/client';
 
 /**
  * Main Agent Orchestrator Class
