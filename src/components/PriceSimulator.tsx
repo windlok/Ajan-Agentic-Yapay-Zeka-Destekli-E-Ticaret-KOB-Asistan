@@ -10,11 +10,42 @@ export default function PriceSimulator() {
   const [stockChange, setStockChange] = useState(0);
 
   useEffect(() => {
+    const mockProducts = [
+      {
+        id: 'test-1',
+        name: 'Wireless Headphones',
+        price: 450,
+        cost: 200,
+        stock: 45,
+      },
+      {
+        id: 'test-2',
+        name: 'USB-C Cable',
+        price: 89,
+        cost: 30,
+        stock: 120,
+      },
+      {
+        id: 'test-3',
+        name: 'Phone Stand',
+        price: 120,
+        cost: 60,
+        stock: 3,
+      },
+      {
+        id: 'test-4',
+        name: 'Screen Protector',
+        price: 45,
+        cost: 50,
+        stock: 200,
+      },
+    ];
+
     const fetchProducts = async () => {
       try {
         const res = await fetch('/api/products', { cache: 'no-store' });
         const result = await res.json();
-        if (result.success && result.data?.data) {
+        if (result.success && result.data?.data && result.data.data.length > 0) {
           const mapped = result.data.data.map((p: any) => ({
             id: p.id,
             name: p.name,
@@ -23,10 +54,15 @@ export default function PriceSimulator() {
             stock: parseInt(p.inventory) || 0,
           }));
           setProducts(mapped);
-          if (mapped.length > 0) setSelectedProduct(mapped[0]);
+          setSelectedProduct(mapped[0]);
+        } else {
+          setProducts(mockProducts);
+          setSelectedProduct(mockProducts[0]);
         }
       } catch (e) {
         console.error('Simülatör: Ürünler yüklenemedi', e);
+        setProducts(mockProducts);
+        setSelectedProduct(mockProducts[0]);
       }
     };
     fetchProducts();
