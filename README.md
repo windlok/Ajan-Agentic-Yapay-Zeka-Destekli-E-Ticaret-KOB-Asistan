@@ -2,7 +2,7 @@
 
 **Hackathon 26 Katılımı** | E-ticaret & Finans Odaklı Agentic AI Çözümü
 
-🚀 **[Canlı Demo Linki](https://ai-commerce-agent.vercel.app)** *(Kendi Vercel URL'niz ile güncelleyebilirsiniz)*
+🚀 **[Canlı Demo Linki]([https://ai-commerce-agent.vercel.app](https://ajan-agentic-yapay-zeka-destekli-e-rosy.vercel.app))** 
 
 ## 📋 Proje Tanımı
 
