@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@vercel/postgres';
 
+export async function GET(req: NextRequest) {
+  return POST(req);
+}
+
 /**
  * POST /api/seed
  * Seed the database with sample data
