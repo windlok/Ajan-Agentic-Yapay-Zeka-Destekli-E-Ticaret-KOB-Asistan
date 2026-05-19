@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
+  const [productsLoaded, setProductsLoaded] = useState(false);
   const [dashboardData, setDashboardData] = useState<any>(null);
 
   // Modal state
@@ -29,6 +30,8 @@ export default function DashboardPage() {
         }
       } catch (e) {
         console.error('Ürünler çekilemedi:', e);
+      } finally {
+        setProductsLoaded(true);
       }
     };
 
@@ -185,7 +188,7 @@ export default function DashboardPage() {
         <div className="metric-box">
           <div className="metric-label">Toplam Gelir</div>
           <div className="metric-value">
-            {products.length > 0 ? `₺${totalRevenue.toLocaleString('tr-TR', { maximumFractionDigits: 0 })}` : 'Yükleniyor...'}
+            {productsLoaded ? `₺${totalRevenue.toLocaleString('tr-TR', { maximumFractionDigits: 0 })}` : 'Yükleniyor...'}
           </div>
           <p className="text-sm text-green-600 dark:text-green-400 mt-2">↑ Stok × Satış Fiyatı</p>
         </div>
@@ -193,7 +196,7 @@ export default function DashboardPage() {
         <div className="metric-box">
           <div className="metric-label">Toplam Kar</div>
           <div className="metric-value">
-            {products.length > 0 ? `₺${totalProfit.toLocaleString('tr-TR', { maximumFractionDigits: 0 })}` : 'Yükleniyor...'}
+            {productsLoaded ? `₺${totalProfit.toLocaleString('tr-TR', { maximumFractionDigits: 0 })}` : 'Yükleniyor...'}
           </div>
           <p className={`text-sm mt-2 ${totalProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
             {totalProfit >= 0 ? '↑ Pozitif getiri' : '↓ Zarar durumu'}
@@ -203,7 +206,7 @@ export default function DashboardPage() {
         <div className="metric-box">
           <div className="metric-label">Kar Marjı</div>
           <div className="metric-value">
-            {products.length > 0 ? `%${avgMargin.toFixed(1)}` : 'Yükleniyor...'}
+            {productsLoaded ? `%${avgMargin.toFixed(1)}` : 'Yükleniyor...'}
           </div>
           <p className={`text-sm mt-2 ${avgMargin >= 20 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
             {avgMargin >= 20 ? 'Ortalamanın üstü' : 'Dikkat: Düşük marj'}
@@ -213,10 +216,10 @@ export default function DashboardPage() {
         <div className="metric-box">
           <div className="metric-label">Aktif Ürün</div>
           <div className="metric-value">
-            {products.length > 0 ? products.length : 'Yükleniyor...'}
+            {productsLoaded ? products.length : 'Yükleniyor...'}
           </div>
           <p className="text-sm text-orange-600 dark:text-orange-400 mt-2">
-            {products.length > 0 ? `${lowMarginProducts.length} ürün risk altında` : '...'}
+            {productsLoaded ? `${lowMarginProducts.length} ürün risk altında` : '...'}
           </p>
         </div>
       </div>
