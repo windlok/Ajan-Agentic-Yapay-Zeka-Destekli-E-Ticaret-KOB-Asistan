@@ -11,6 +11,7 @@ export default function FinancialPage() {
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
+  const [productsLoaded, setProductsLoaded] = useState(false);
   const [profitableProducts, setProfitableProducts] = useState<any[]>([]);
   const [lossProducts, setLossProducts] = useState<any[]>([]);
   const [monthlyMetrics, setMonthlyMetrics] = useState<any[]>([]);
@@ -72,6 +73,8 @@ export default function FinancialPage() {
         }
       } catch (error) {
         console.error('Error fetching products for financial page:', error);
+      } finally {
+        setProductsLoaded(true);
       }
     };
 
@@ -307,7 +310,7 @@ export default function FinancialPage() {
         <div className="metric-box">
           <div className="metric-label">Toplam Gelir</div>
           <div className="metric-value">
-            {products.length > 0 ? `₺${products.reduce((s, p) => s + ((parseFloat(p.current_price) || parseFloat(p.base_price) || 0) * (p.inventory || 0)), 0).toLocaleString('tr-TR', {maximumFractionDigits: 0})}` : 'Yükleniyor...'}
+            {productsLoaded ? `₺${products.reduce((s, p) => s + ((parseFloat(p.current_price) || parseFloat(p.base_price) || 0) * (p.inventory || 0)), 0).toLocaleString('tr-TR', {maximumFractionDigits: 0})}` : 'Yükleniyor...'}
           </div>
           <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Bu ay</p>
         </div>
@@ -315,7 +318,7 @@ export default function FinancialPage() {
         <div className="metric-box">
           <div className="metric-label">Toplam Maliyet</div>
           <div className="metric-value">
-            {products.length > 0 ? `₺${products.reduce((s, p) => s + ((parseFloat(p.cost_price) || 0) * (p.inventory || 0)), 0).toLocaleString('tr-TR', {maximumFractionDigits: 0})}` : 'Yükleniyor...'}
+            {productsLoaded ? `₺${products.reduce((s, p) => s + ((parseFloat(p.cost_price) || 0) * (p.inventory || 0)), 0).toLocaleString('tr-TR', {maximumFractionDigits: 0})}` : 'Yükleniyor...'}
           </div>
           <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Ürün maliyeti</p>
         </div>
@@ -323,7 +326,7 @@ export default function FinancialPage() {
         <div className="metric-box">
           <div className="metric-label">Brüt Kar</div>
           <div className="metric-value">
-            {products.length > 0 ? (() => {
+            {productsLoaded ? (() => {
               const rev = products.reduce((s, p) => s + ((parseFloat(p.current_price) || parseFloat(p.base_price) || 0) * (p.inventory || 0)), 0);
               const cost = products.reduce((s, p) => s + ((parseFloat(p.cost_price) || 0) * (p.inventory || 0)), 0);
               return `₺${(rev - cost).toLocaleString('tr-TR', {maximumFractionDigits: 0})}`;
@@ -335,12 +338,12 @@ export default function FinancialPage() {
         <div className="metric-box">
           <div className="metric-label">Net Kar Marjı</div>
           <div className="metric-value">
-            {products.length > 0 ? (() => {
-              const avg = products.reduce((s, p) => {
+            {productsLoaded ? (() => {
+              const avg = products.length > 0 ? products.reduce((s, p) => {
                 const price = parseFloat(p.current_price) || parseFloat(p.base_price) || 0;
                 const cost = parseFloat(p.cost_price) || 0;
                 return s + (price > 0 ? ((price - cost) / price) * 100 : 0);
-              }, 0) / products.length;
+              }, 0) / products.length : 0;
               return `%${avg.toFixed(1)}`;
             })() : 'Yükleniyor...'}
           </div>
@@ -350,14 +353,14 @@ export default function FinancialPage() {
         <div className="metric-box">
           <div className="metric-label">ROI</div>
           <div className="metric-value">
-            {products.length > 0 ? (() => {
+            {productsLoaded ? (() => {
               const rev = products.reduce((s, p) => s + ((parseFloat(p.current_price) || parseFloat(p.base_price) || 0) * (p.inventory || 0)), 0);
               const cost = products.reduce((s, p) => s + ((parseFloat(p.cost_price) || 0) * (p.inventory || 0)), 0);
               const roi = cost > 0 ? ((rev - cost) / cost * 100) : 0;
               return `%${roi.toFixed(0)}`;
             })() : 'Yükleniyor...'}
           </div>
-          <p className="text-xs text-green-600 dark:text-green-400 mt-1">{products.length > 0 ? (() => {
+          <p className="text-xs text-green-600 dark:text-green-400 mt-1">{productsLoaded ? (() => {
             const rev = products.reduce((s, p) => s + ((parseFloat(p.current_price) || parseFloat(p.base_price) || 0) * (p.inventory || 0)), 0);
             const cost = products.reduce((s, p) => s + ((parseFloat(p.cost_price) || 0) * (p.inventory || 0)), 0);
             const roi = cost > 0 ? ((rev - cost) / cost * 100) : 0;
